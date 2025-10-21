@@ -20,6 +20,11 @@ const Home = () => {
         width: "100%",
        
     };
+    const headingStyle = {
+        fontFamily: "'Montserrat', sans-serif",
+        fontWeight: "500",
+        color: "#27001a",
+    }
     
         
     const video = {
@@ -55,33 +60,33 @@ const Home = () => {
         <>
             <section style={videoGrid}>
                 <div style={videoItem}>
-                    <video style={video} muted onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} >
+                    <video style={video} muted autoPlay loop playsInline  >
                         <source src="/videos/video1.mp4" type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
                 </div>
                 <div style={videoItem}>
-                    <video style={video} muted onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} >
+                    <video style={video} muted autoPlay loop playsInline >
                         <source src="/videos/video2.mp4" type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
                 </div>
                 <div style={videoItem}>
-                    <video style={video} muted onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} >
+                    <video style={video} muted autoPlay loop playsInline >
                         <source src="/videos/video3.mp4" type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
                 </div>
                 <div style={videoItem}>
-                    <video style={video} muted onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} >
+                    <video style={video} muted autoPlay loop playsInline >
                         <source src="/videos/video4.mp4" type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
                 </div>
             </section>
             <div style={containerStyle}>
-                <h1>DISCOVER OUR COLLECTIONS</h1>
-                <p>Elevate your look with pieces that take center stage</p>
+                <h1 style={headingStyle}>DISCOVER OUR COLLECTIONS</h1>
+                <p color="#27001a">Elevate your look with pieces that take center stage</p>
             </div>
             <section style={imageGrid}>
                 <div style={imageItem}>

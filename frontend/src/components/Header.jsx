@@ -1,4 +1,6 @@
 import React from 'react';
+import { FaSearch } from "react-icons/fa"; 
+
 
 const Header = () => {
     const [searchTerm, setSearchTerm] = React.useState('');
@@ -81,7 +83,7 @@ const Header = () => {
             </nav>
             <div className='search-bar' style={searchBarStyle}>
                 <input type="text" placeholder="Search" style={inputStyle} value={searchTerm} onChange={ (e) => setSearchTerm(e.target.value)}/>
-                <button style={buttonStyle} onClick={handleSearch}><img src="/images/search.svg" alt="Search" style={imgStyle} /></button>
+                <button style={buttonStyle} onClick={handleSearch}><FaSearch size={20} color="#27001a" /></button>
             </div>
             <div className='cart'>
                 <img src="/images/cart.svg" alt="Cart" className="cart-img" style={{ width: "30px", height: "30px" }}/>
