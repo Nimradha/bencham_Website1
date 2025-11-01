@@ -1,5 +1,7 @@
 import React from 'react';
 import { FaSearch } from "react-icons/fa"; 
+import { FaShoppingCart } from "react-icons/fa";
+
 
 
 const Header = () => {
@@ -35,6 +37,10 @@ const Header = () => {
         height: '30px',
         alignItems: 'center',
     };
+    const handleCartClick = () => {
+     alert("Cart clicked! This is your cart popup.");
+   };
+
 
 
     const inputStyle = {
@@ -85,9 +91,10 @@ const Header = () => {
                 <input type="text" placeholder="Search" style={inputStyle} value={searchTerm} onChange={ (e) => setSearchTerm(e.target.value)}/>
                 <button style={buttonStyle} onClick={handleSearch}><FaSearch size={20} color="#27001a" /></button>
             </div>
-            <div className='cart'>
-                <img src="/images/cart.svg" alt="Cart" className="cart-img" style={{ width: "30px", height: "30px" }}/>
-            </div>
+           <div className='cart' style={{ cursor: "pointer" }} onClick={handleCartClick}>
+            <FaShoppingCart size={30} color="white" />
+           </div>
+
         </header>
     );
 };

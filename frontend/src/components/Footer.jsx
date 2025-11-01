@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { FaFacebook, FaInstagram, FaYoutube } from "react-icons/fa";
 
 
@@ -78,7 +79,9 @@ const Footer = () => {
       <div style={topSection}>
         <h2 style={headingStyle}>If you have any questions or need <br/>assistance please reach out to us</h2>
         <div style={{ display: "flex", alignItems: "center", gap: "60px" }}>
-          <button style={contactButton}>Contact Us</button>
+          <Link to="/contact">
+            <button style={contactButton}>Contact Us</button>
+          </Link>
           <h3>Call : +77 585 0202</h3>
         </div>
       </div>
