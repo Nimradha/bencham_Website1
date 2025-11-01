@@ -2,6 +2,44 @@ import React from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaGlobe, FaFacebook, FaInstagram, FaPinterest, FaYoutube } from 'react-icons/fa';
 
 const Contact = () => {
+  const [formData, setFormData] = React.useState({
+    name: '',
+    email: '',
+    phone: '',
+    location: '',
+    message: '',
+  });
+  const [status, setStatus] = React.useState('');
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("Sending...");
+    console.log("Submitting form data:", formData);
+    try {
+      const response = await fetch('http://localhost:3000/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'},
+        body: JSON.stringify(formData),
+      });
+      console.log("Response status:", response.status);
+      const data =await response.json();
+      console.log("Response data:", data);
+      if (response.ok) {
+        setStatus("Message sent successfully!");
+        setFormData({name: '', email: '', phone: '', location: '', message: ''});
+      }else {
+        setStatus("Failed to send message.");
+      }
+    } catch(err) {
+      console.error(err);
+      setStatus("An error occurred.");
+    }
+  };
+
+    
   const container = {
     backgroundColor: '#fff',
     fontFamily: "'Montserrat', sans-serif",
@@ -184,12 +222,12 @@ const Contact = () => {
         {/* Right side */}
         <div style={contactForm}>
           <h2 style={heading}>Send Us A Message!</h2>
-          <form>
-            <input type="text" placeholder="Name" style={inputStyle} />
-            <input type="email" placeholder="Email" style={inputStyle} />
-            <input type="text" placeholder="Phone No." style={inputStyle} />
-            <input type="text" placeholder="Location" style={inputStyle} />
-            <textarea placeholder="Message" rows="5" style={inputStyle}></textarea>
+          <form onSubmit={handleSubmit}>
+            <input type="text" name="name" placeholder="Name" style={inputStyle} value={formData.name} onChange={handleChange} required/>
+            <input type="email" name='email' placeholder="Email" style={inputStyle} value={formData.email} onChange={handleChange} required/>
+            <input type="text" name='phone' placeholder="Phone No." style={inputStyle} value={formData.phone} onChange={handleChange} required/>
+            <input type="text" name='location' placeholder="Location" style={inputStyle} value={formData.location} onChange={handleChange} required/>
+            <textarea placeholder="Message" name='message' rows="5" style={inputStyle} value={formData.message} onChange={handleChange} required></textarea>
             <button type="submit" style={formButton}>Submit</button>
           </form>
         </div>
