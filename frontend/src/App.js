@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import './App.css';
 import Home from './components/Home';
 import Contact from './components/Contact';
+import About from './components/About';
 
 function App() {
   const [showSplash, setShowSplash] = React.useState(true);
@@ -43,6 +44,7 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
       </Routes>
       

@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaSearch } from "react-icons/fa"; 
 import { FaShoppingCart } from "react-icons/fa";
-
+import { Link } from 'react-router-dom';
 
 
 const Header = () => {
@@ -80,9 +80,12 @@ const Header = () => {
             </div>
             <nav>
                 <ul className='nav-links' style={navLinksStyle}>
-                    <li><a href="#home" style={testDeco}>Home</a></li>
-                    <li><a href="#about" style={testDeco}>About</a></li>
-                    <li><a href="#contact" style={testDeco}>Contact Us</a></li>
+                    <li><Link to="/" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
+      onMouseLeave={(e) => (e.target.style.color = "white")} >Home</Link></li>
+                    <li><Link to="/about" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
+      onMouseLeave={(e) => (e.target.style.color = "white")} >About Us</Link></li>
+                    <li><Link to="/contact" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
+      onMouseLeave={(e) => (e.target.style.color = "white")} >Contact Us</Link></li>
                     <li><a href="#login" style={testDeco}>Login</a></li>
                     <li><a href="#signup" style={testDeco}>SignUp</a></li>
                 </ul>
