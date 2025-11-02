@@ -13,6 +13,10 @@ const Footer = () => {
     alignItems: "center",
     flexWrap: "wrap",
   };
+  const testDeco = {
+        textDecoration: "none",
+        color: "white",
+    };
 
   const contactButton = {
     backgroundColor: "#27001a", // purple button
@@ -108,19 +112,19 @@ const Footer = () => {
 
         <div style={column}>
           <div style={heading}>Shop with Us</div>
-          <a href="#home" style={link}>Home</a>
-          <a href="#about" style={link}>About Us</a>
-          <a href="#marketplace" style={link}>Marketplace</a>
+          <Link to="/" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
+                onMouseLeave={(e) => (e.target.style.color = "white")} >Home</Link>
+          <Link to="/about" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
+                onMouseLeave={(e) => (e.target.style.color = "white")} >About Us</Link>
           <a href="#account" style={link}>My Account</a>
-          <a href="#blog" style={link}>Blog</a>
         </div>
 
         <div style={column}>
           <div style={heading}>Sell with Us</div>
           <a href="#why" style={link}>Why Sell with Us</a>
-          <a href="#create" style={link}>Create your own shop</a>
           <a href="#vendor" style={link}>Vendor Account</a>
-          <a href="#contact" style={link}>Contact Us</a>
+          <Link to="/contact" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
+                onMouseLeave={(e) => (e.target.style.color = "white")} >Contact Us</Link>
         </div>
 
         <div style={column}>
