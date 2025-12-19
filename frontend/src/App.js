@@ -8,6 +8,7 @@ import Home from './components/Home';
 import Contact from './components/Contact';
 import About from './components/About';
 import Login from './components/Login';
+import CreateAccount from './components/createAccount';
 
 function App() {
   const [showSplash, setShowSplash] = React.useState(true);
@@ -47,7 +48,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path='/login' element={ <Login />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/createAccount" element={<CreateAccount />} />
       </Routes>
       
       <Footer />

@@ -1,5 +1,9 @@
 import React from "react";
+import { useState } from "react";
+
 import { FcGoogle } from "react-icons/fc";
+import { Link } from "react-router-dom";
+
 
 const Login = () => {
   const container = {
@@ -15,7 +19,7 @@ const Login = () => {
     backgroundColor: "#fff",
     padding: "40px",
     borderRadius: "12px",
-    width: "380px",
+    width: "450px",
     boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
     textAlign: "center",
     height: "500px"
@@ -31,7 +35,7 @@ const Login = () => {
   };
 
   const button = {
-    width: "100%",
+    width: "45%",
     padding: "12px",
     backgroundColor: "#27001a",
     color: "white",
@@ -40,6 +44,10 @@ const Login = () => {
     cursor: "pointer",
     fontSize: "16px",
     marginTop: "10px",
+    justifyContent: "center",
+    gap: "8px",
+    display: "flex",
+    alignItems: "center",
   };
 
   const divider = {
@@ -55,6 +63,33 @@ const Login = () => {
     height: "1px",
     backgroundColor: "#ddd",
   };
+
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const formContainer = {
+  display: "flex",
+  flexDirection: "column",
+  width: "100%",       // takes full width
+  maxWidth: "600px",   // keeps form neat
+};
+
+const labelStyle = {
+  textAlign: "left",
+  marginBottom: "6px",
+  fontWeight: "500",
+  color: "#27001a",
+};
+
+const inputStyle = {
+  width: "100%",       // THIS fixes left/right mismatch
+  padding: "10px",
+  marginBottom: "15px",
+  border: "1px solid #ccc",
+  borderRadius: "4px",
+  boxSizing: "border-box", // VERY IMPORTANT
+};
+
+
 
   const oauthButton = {
     width: "100%",
@@ -76,36 +111,54 @@ const Login = () => {
       <div style={card}>
         <h2 style={{ marginBottom: "20px" }}>Log in to your account</h2>
 
-        {/* Google & SSO buttons */}
-        <button style={oauthButton}>
-          <FcGoogle size={22} /> Continue with Google
-        </button>
         
+         <div style={formContainer}>
+             <label style={labelStyle}>Email</label><br></br>
+             <input type="email" style={inputStyle} />
 
-        {/* Divider */}
-        <div style={divider}>
-          <div style={line}></div>
-          <span style={{ margin: "0 10px" }}>or</span>
-          <div style={line}></div>
-        </div>
+             <label style={labelStyle}>Password</label><br></br>
+             <input type="password" style={inputStyle} />
+         </div><br></br>
 
-        {/* Email and password inputs */}
-        <input type="email" placeholder="Email address or username" style={input} />
-        <input type="password" placeholder="Password" style={input} />
 
-        <div style={{ textAlign: "right", marginBottom: "15px" }}>
-          <a href="#" style={{ color: "#ad9551", fontSize: "16px", textDecoration: "none" }}>
+
+        <div style={{ textAlign: "left", marginBottom: "15px" }}>
+          <a href="#" style={{ color: "#ad9551", fontSize: "14px", textDecoration: "none" }}>
             Forgot your password?
           </a>
         </div>
 
-        <button style={button}>Continue</button>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: "15px" }}>
+        <input
+          type="checkbox"
+          id="rememberMe"
+          checked={rememberMe}
+          onChange={(e) => setRememberMe(e.target.checked)}
+          style={{ marginRight: "8px", cursor: "pointer" }}
+        />
+        <label
+          htmlFor="rememberMe"
+          style={{ fontSize: "14px", color: "#27001a", cursor: "pointer" }}
+        >
+          Remember me
+        </label>
+      </div>
+        
 
-        <p style={{ marginTop: "20px", fontSize: "16px" }}>
+        <div style={{display: "flex",justifyContent: "center",gap: "20px", }}>
+         <button style={button}>Login</button>
+         <button style={button}>
+          <FcGoogle size={22} style={{ marginRight: "10px" }} />
+          Sign in with Google
+         </button>
+        </div>
+
+
+        <p style={{ marginTop: "20px", fontSize: "14px" }}>
           Don't have an account?{" "}
-          <a href="#" style={{ color: "#ad9551", textDecoration: "none" }}>
-            Sign up
-          </a>
+          <Link to="/createAccount" style={{ color: "#ad9551", textDecoration: "none" }}>
+            Create Account
+          </Link>
         </p>
       </div>
     </div>

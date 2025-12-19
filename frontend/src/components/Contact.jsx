@@ -1,5 +1,7 @@
 import React from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaGlobe, FaFacebook, FaInstagram, FaPinterest, FaYoutube } from 'react-icons/fa';
+import {ToastContainer, toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Contact = () => {
   const [formData, setFormData] = React.useState({
@@ -15,8 +17,7 @@ const Contact = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus("Sending...");
-    console.log("Submitting form data:", formData);
+    toast.info("Sending message...", {position: "top-center"});
     try {
       const response = await fetch('http://localhost:3000/api/contact', {
         method: 'POST',
@@ -24,18 +25,25 @@ const Contact = () => {
           'Content-Type': 'application/json'},
         body: JSON.stringify(formData),
       });
-      console.log("Response status:", response.status);
+      
       const data =await response.json();
-      console.log("Response data:", data);
+      
       if (response.ok) {
-        setStatus("Message sent successfully!");
-        setFormData({name: '', email: '', phone: '', location: '', message: ''});
-      }else {
-        setStatus("Failed to send message.");
+        toast.success("Message sent successfully!", {position: "top-center"});
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          location: '',
+          message: '',
+        });
+      } else {
+        toast.error("Failed to send message.", {position: "top-center"});
+
       }
     } catch(err) {
       console.error(err);
-      setStatus("An error occurred.");
+      toast.error("An error occurred.", {position: "top-center"});
     }
   };
 
@@ -231,6 +239,18 @@ const Contact = () => {
             <button type="submit" style={formButton}>Submit</button>
           </form>
         </div>
+
+        <ToastContainer 
+            position="top-center"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            />
       </div>
     </div>
   );

@@ -88,7 +88,7 @@ const Header = () => {
       onMouseLeave={(e) => (e.target.style.color = "white")} >Contact Us</Link></li>
                     <li><Link to="/login" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
       onMouseLeave={(e) => (e.target.style.color = "white")} >Login</Link></li>
-                    <li><a href="#signup" style={testDeco}>SignUp</a></li>
+                    
                 </ul>
             </nav>
             <div className='search-bar' style={searchBarStyle}>
