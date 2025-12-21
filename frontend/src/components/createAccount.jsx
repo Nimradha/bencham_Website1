@@ -211,9 +211,10 @@ const eyeStyle = {
 
 
         <div style={{ textAlign: "left", marginBottom: "15px" }}>
-          <a href="#" style={{ color: "#ad9551", fontSize: "14px", textDecoration: "none" }}>
-            Forgot your password?
-          </a>
+                  <Link to="/forgotPassword" style={{ color: "#ad9551", fontSize: "14px", textDecoration: "none" }}>
+                     Forgot your password?
+                  </Link>
+        
         </div>
 
         <div style={{ display: "flex", alignItems: "center", marginBottom: "15px" }}>

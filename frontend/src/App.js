@@ -9,6 +9,9 @@ import Contact from './components/Contact';
 import About from './components/About';
 import Login from './components/Login';
 import CreateAccount from './components/createAccount';
+import ForgotPassword from './components/forgotPassword';
+import VerifyOtp from './components/verifyOtp';
+import ResetPassword from './components/resetPassword';
 
 function App() {
   const [showSplash, setShowSplash] = React.useState(true);
@@ -50,6 +53,9 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/createAccount" element={<CreateAccount />} />
+        <Route path="/forgotPassword" element={<ForgotPassword />} />
+        <Route path="/verifyOtp" element={<VerifyOtp />} />
+        <Route path="/resetPassword" element={<ResetPassword />} />
       </Routes>
       
       <Footer />
