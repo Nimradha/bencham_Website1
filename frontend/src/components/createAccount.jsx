@@ -6,8 +6,79 @@ import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 
-const Login = () => {
+const CreateAccount = () => {
     const [country, setCountry] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password,setPassword] = useState("");
+    const [confirmPassword,setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
+    const [errors, setErrors] = useState({});
+
+    const togglePassword = () => setShowPassword(!showPassword);
+
+    const validateForm = () => {
+        const newErrors = {};
+        if (!firstName.trim()) newErrors.firstName = "First name is required";
+        if (!lastName.trim()) newErrors.lastName = "Last name is required";
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email.trim()) {
+          newErrors.email = "Email is required";
+        }else if (!emailRegex.test(email)) {
+          newErrors.email = "Invalid email format";
+        }
+        if (!country) newErrors.country = "Country is required";
+
+        if (!password) {
+          newErrors.password = "Password is required";
+        } else if (password.length < 8) {
+          newErrors.password = "Password must be at least 8 characters";
+        }
+        if (password !== confirmPassword) {
+          newErrors.confirmPassword = "Passwords do not match";
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+      };
+
+    const handleCreateAccount = async () => {
+        if (!validateForm()) return;
+
+        try {
+          const res = await fetch("http://localhost:3000/api/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+           },
+            body: JSON.stringify({
+            firstName,
+            lastName,
+            email,
+            country,
+            password,
+            rememberMe,
+            }),
+          });
+
+          const data = await res.json();
+
+         if (res.ok) {
+          alert("Account created successfully!");
+          window.location.href = "/login"; // or use navigate()
+        } else {
+          alert(data.message);
+        }
+
+        } catch (error) {
+            console.error(error);
+            alert("Something went wrong");
+      }
+    };
+
+      
   const container = {
     display: "flex",
     justifyContent: "center",
@@ -66,7 +137,13 @@ const Login = () => {
     backgroundColor: "#ddd",
   };
 
-  const [rememberMe, setRememberMe] = useState(false);
+  const errorStyle = {
+    color: "red",
+    fontSize: "12px",
+    textAlign: "left",
+    marginBottom: "10px",
+  };
+
   
 
 
@@ -75,16 +152,16 @@ const Login = () => {
   flexDirection: "column",
   width: "100%",       // takes full width
   maxWidth: "600px",   // keeps form neat
-};
+  };
 
-const labelStyle = {
+ const labelStyle = {
   textAlign: "left",
   marginBottom: "6px",
   fontWeight: "500",
   color: "#27001a",
-};
+ };
 
-const inputStyle = {
+ const inputStyle = {
   width: "100%",       // THIS fixes left/right mismatch
   padding: "10px",
   paddingRight: "80px", // space for eye icon
@@ -92,19 +169,16 @@ const inputStyle = {
   border: "1px solid #ccc",
   borderRadius: "4px",
   boxSizing: "border-box", // VERY IMPORTANT
-};
+ };
 
-const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
-  const togglePassword = () => setShowPassword(!showPassword);
 
-const eyeStyle = {
-    position: "Absolute",
-    top: "47%",
+ const eyeStyle = {
+    position: "absolute",
+    top: "40%",
     right: "10px",
     cursor: "pointer",
+    transform: "translateY(-50%)",
   };
 
 
@@ -134,12 +208,14 @@ const eyeStyle = {
   
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
            <label style={labelStyle}>First Name</label>
-           <input type="text" style={inputStyle} />
+           <input value={firstName} onChange={(e) => setFirstName(e.target.value)} style={inputStyle}/>
+            {errors.firstName && <p style={errorStyle}>{errors.firstName}</p>}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
            <label style={labelStyle}>Last Name</label>
-           <input type="text" style={inputStyle} />
+           <input value={lastName} onChange={(e) => setLastName(e.target.value)} style={inputStyle}/>
+            {errors.lastName && <p style={errorStyle}>{errors.lastName}</p>}
           </div>
          </div>
 
@@ -147,7 +223,8 @@ const eyeStyle = {
   
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
            <label style={labelStyle}>Email or Phone number</label>
-           <input type="text" style={inputStyle} />
+           <input value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle}/>
+           {errors.email && <p style={errorStyle}>{errors.email}</p>}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
@@ -165,6 +242,7 @@ const eyeStyle = {
              <option value="United States">United States</option>
              <option value="United Kingdom">United Kingdom</option>
            </select>
+            {errors.country && <p style={errorStyle}>{errors.country}</p>}
           </div>
          </div>
 
@@ -172,7 +250,7 @@ const eyeStyle = {
       {/* Password */}
       <div style={{ display: "flex", flexDirection: "column", flex: 1, position: "relative" }}>
         <label style={labelStyle}>Password</label>
-        <div>
+        <div style={{position: "relative"}}>
           <input
             type={showPassword ? "text" : "password"}
             style={inputStyle}
@@ -184,13 +262,15 @@ const eyeStyle = {
           ) : (
             <FaEye style={eyeStyle} onClick={togglePassword} />
           )}
+          
         </div>
-      </div>
+        {errors.password && <p style={errorStyle}>{errors.password}</p>}
+      </div> 
 
       {/* Confirm Password */}
       <div style={{ display: "flex", flexDirection: "column", flex: 1, position: "relative" }}>
         <label style={labelStyle}>Confirm Password</label>
-        <div >
+        <div style={{position: "relative"}}>
           <input
             type={showPassword ? "text" : "password"}
             style={inputStyle}
@@ -202,20 +282,12 @@ const eyeStyle = {
           ) : (
             <FaEye style={eyeStyle} onClick={togglePassword} />
           )}
+          
         </div>
+        {errors.confirmPassword && <p style={errorStyle}>{errors.confirmPassword}</p>}
       </div>
     </div>
 
-
-
-
-
-        <div style={{ textAlign: "left", marginBottom: "15px" }}>
-                  <Link to="/forgotPassword" style={{ color: "#ad9551", fontSize: "14px", textDecoration: "none" }}>
-                     Forgot your password?
-                  </Link>
-        
-        </div>
 
         <div style={{ display: "flex", alignItems: "center", marginBottom: "15px" }}>
         <input
@@ -235,7 +307,7 @@ const eyeStyle = {
         
 
         <div style={{display: "flex",justifyContent: "center",gap: "20px", }}>
-         <button style={button}>Create Account</button>
+         <button type="button"style={button} onClick={handleCreateAccount}>Create Account</button>
          <button style={button}>
           <FcGoogle size={22} style={{ marginRight: "10px" }} />
           Sign in with Google
@@ -254,4 +326,4 @@ const eyeStyle = {
   );
 };
 
-export default Login;
+export default CreateAccount;

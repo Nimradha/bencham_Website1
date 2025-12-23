@@ -139,6 +139,42 @@ app.post('/api/reset-password', async (req, res) => {
   res.status(200).json({ message: 'Password reset successful' });
 });
 
+app.post("/api/register", async (req, res) => {
+  try {
+    const { firstName, lastName, email, country, password } = req.body;
+
+    // 1. Validate
+    if (!firstName || !lastName || !email || !country || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // 2. Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
+    }
+
+    // 3. Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 4. Save user
+    const newUser = new User({
+      name: `${firstName} ${lastName}`,
+      email,
+      password: hashedPassword,
+    });
+
+    await newUser.save();
+
+    res.status(201).json({ message: "Account created successfully" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
