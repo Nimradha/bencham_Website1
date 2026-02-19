@@ -66,8 +66,9 @@ const CreateAccount = () => {
           const data = await res.json();
 
          if (res.ok) {
+          localStorage.setItem("token", data.token);   // ✅ SAVE TOKEN
           alert("Account created successfully!");
-          window.location.href = "/login"; // or use navigate()
+          window.location.href = "/"; // or use navigate()
         } else {
           alert(data.message);
         }

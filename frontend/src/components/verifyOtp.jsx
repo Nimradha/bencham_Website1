@@ -49,9 +49,10 @@ const VerifyOtp = () => {
             type="email"
             placeholder="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            
             style={styles.input}
             required
+            readOnly
           />
 
           <input

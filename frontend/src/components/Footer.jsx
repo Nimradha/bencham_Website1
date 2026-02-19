@@ -96,16 +96,21 @@ const Footer = () => {
           <div className='logo' style={{ marginTop: "-38px" }}>
                 <img src="/images/logo1.png" alt="Logo" style={{ height: "200px" }} />
           </div>
-          <div style={{marginTop:"-30px",color:"#ad9551",fontFamily:"'Montserrat', sans-serif",fontWeight:"500"}}>Follow Us</div>
+          
+        </div>
+
+
+        <div style={column}>
+          <div style={heading}>Follow Us</div>
           <div style={socialIcons}>
             <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer">
-              <FaFacebook size={24} color="white" />
+              <img src="/images/facebook-1-svgrepo-com.svg" alt="Facebook" height={"30px"} />
             </a>
             <a href="https://www.instagram.com/benchamjewellers?igsh=ajBsNmsyazU1amlr" target="_blank" rel="noopener noreferrer">
-              <FaInstagram size={24} color="white" />
+              <img src="/images/instagram-2016-logo-svgrepo-com.svg" alt="Instagram" height={"30px"} />
             </a>
             <a href="https://www.youtube.com/@BenChamMores" target="_blank" rel="noopener noreferrer">
-              <FaYoutube size={24} color="white" />
+              <img src="/images/youtube-svgrepo-com.svg" alt="YouTube" height={"30px"} />
             </a>
           </div>
         </div>
@@ -119,20 +124,15 @@ const Footer = () => {
           <a href="#account" style={link}>My Account</a>
         </div>
 
-        <div style={column}>
-          <div style={heading}>Sell with Us</div>
-          <a href="#why" style={link}>Why Sell with Us</a>
-          <a href="#vendor" style={link}>Vendor Account</a>
-          <Link to="/contact" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
-                onMouseLeave={(e) => (e.target.style.color = "white")} >Contact Us</Link>
-        </div>
+        
+
+        
 
         <div style={column}>
           <div style={heading}>Quick Links</div>
           <a href="#privacy" style={link}>Privacy Policy</a>
           <a href="#terms" style={link}>Terms & Conditions</a>
-          <a href="#refund" style={link}>Refund & Cancellation Policy</a>
-          <a href="#agreement" style={link}>User Agreement</a>
+          
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import './App.css';
@@ -12,9 +12,23 @@ import CreateAccount from './components/createAccount';
 import ForgotPassword from './components/forgotPassword';
 import VerifyOtp from './components/verifyOtp';
 import ResetPassword from './components/resetPassword';
+import Details from './components/Details';
+import Buy from './components/buy';
+import Cart from './components/cart';
+import { CartProvider } from './components/CartContext';
+import './App.css';
 
 function App() {
   const [showSplash, setShowSplash] = React.useState(true);
+  const ProtectedRoute = ({ children }) => {
+    const isLoggedIn = sessionStorage.getItem("user") !== null;
+
+    if (!isLoggedIn) {
+      return <Navigate to="/login" replace />;
+    }
+
+    return children;
+  };
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -44,6 +58,7 @@ function App() {
   };
 
   return (
+    <CartProvider>
     <Router>
       <div className="App">
       <Header />
@@ -56,6 +71,16 @@ function App() {
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/verifyOtp" element={<VerifyOtp />} />
         <Route path="/resetPassword" element={<ResetPassword />} />
+        <Route path="/details/:id" element={<Details />} />
+        <Route path="/buy" element={<Buy />} />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
       
       <Footer />
@@ -68,6 +93,7 @@ function App() {
       </div>
 
     </Router>
+    </CartProvider>
     
   );
 }

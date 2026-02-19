@@ -2,10 +2,14 @@ import React from 'react';
 import { FaSearch } from "react-icons/fa"; 
 import { FaShoppingCart } from "react-icons/fa";
 import { Link } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+
 
 
 const Header = () => {
     const [searchTerm, setSearchTerm] = React.useState('');
+    const navigate = useNavigate();
+
 
     const headerStyle = {
         display: "flex",
@@ -38,8 +42,9 @@ const Header = () => {
         alignItems: 'center',
     };
     const handleCartClick = () => {
-     alert("Cart clicked! This is your cart popup.");
-   };
+      navigate("/cart");
+    };
+
 
 
 
@@ -96,7 +101,7 @@ const Header = () => {
                 <button style={buttonStyle} onClick={handleSearch}><FaSearch size={20} color="#27001a" /></button>
             </div>
            <div className='cart' style={{ cursor: "pointer" }} onClick={handleCartClick}>
-            <FaShoppingCart size={30} color="white" />
+            <img src="/images/shopping-cart-01-svgrepo-com (1).svg" style={{height:"35px"}} alt="Cart" />
            </div>
 
         </header>

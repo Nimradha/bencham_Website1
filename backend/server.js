@@ -5,6 +5,8 @@ import e from 'express';
 import { createDecipheriv } from 'crypto';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
 
 const app = express();
 app.use(express.json());
@@ -36,6 +38,37 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+const addressSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  fullName: { type: String, required: true },
+  phone: { type: String, required: true },
+  province: { type: String, required: true },
+  district: { type: String, required: true },
+  city: { type: String, required: true },
+  addressLine: { type: String, required: true },
+  label: { type: String, enum: ["home", "office"], required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Address = mongoose.model("Address", addressSchema);
+
+const authMiddleware = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1]; // expecting "Bearer <token>"
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized, token missing" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, "your_jwt_secret"); // Use a strong secret
+    req.user = { id: decoded.id }; // attach user info to request
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Unauthorized, invalid token" });
+  }
+};
+
+
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -65,6 +98,32 @@ app.post('/api/contact', async (req, res) => {
         res.status(500).json({ message: 'Failed to send message.' });
     }
 });
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign({ id: user._id }, "your_jwt_secret", {
+      expiresIn: "7d",
+    });
+
+    res.json({ token });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 
 app.post('/api/forgot-password', async (req, res) => {              
@@ -165,14 +224,57 @@ app.post("/api/register", async (req, res) => {
     });
 
     await newUser.save();
+    const token = jwt.sign({ id: newUser._id }, "your_jwt_secret", { expiresIn: "7d" });
+    res.status(201).json({ message: "Account created successfully" , token});
 
-    res.status(201).json({ message: "Account created successfully" });
+  
 
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
+app.post("/api/address", authMiddleware, async (req, res) => {
+  try {
+    const { fullName, phone, province, district, city, addressLine, label } = req.body;
+
+    if (!fullName || !phone || !province || !district || !city || !addressLine || !label) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const newAddress = new Address({
+      userId: req.user.id,
+      fullName,
+      phone,
+      province,
+      district,
+      city,
+      addressLine,
+      label
+    });
+
+    await newAddress.save();
+    res.status(201).json({ message: "Address saved successfully", address: newAddress });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get all addresses of the logged-in user
+app.get("/api/address", authMiddleware, async (req, res) => {
+  try {
+    const addresses = await Address.find({ userId: req.user.id });
+    res.json(addresses);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 
 
 

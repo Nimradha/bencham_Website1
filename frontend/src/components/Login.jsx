@@ -2,10 +2,25 @@ import React from "react";
 import { useState } from "react";
 
 import { FcGoogle } from "react-icons/fc";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+
+import { useGoogleLogin } from "@react-oauth/google";
 
 
 const Login = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const login = useGoogleLogin({
+  onSuccess: tokenResponse => {
+    sessionStorage.setItem("user", JSON.stringify(tokenResponse));
+    navigate(location.state?.from?.pathname || "/");
+
+  },
+  onError: () => {
+    console.log("Google Login Failed");
+  },
+ });
   const container = {
     display: "flex",
     justifyContent: "center",
@@ -147,8 +162,19 @@ const inputStyle = {
         
 
         <div style={{display: "flex",justifyContent: "center",gap: "20px", }}>
-         <button style={button}>Login</button>
-         <button style={button}>
+
+         <button
+          style={button}
+          onClick={() => {
+           sessionStorage.setItem("user", "loggedIn");
+           navigate(location.state?.from || "/");
+          }}
+         >
+           Login
+         </button>
+
+
+         <button style={button} onClick={()=>login()}>
           <FcGoogle size={22} style={{ marginRight: "10px" }} />
           Sign in with Google
          </button>
