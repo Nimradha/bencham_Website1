@@ -3,10 +3,11 @@ import { useLocation, useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { CartContext } from "./CartContext";
+import  {App} from "../App.css";
+import { MdOpenInFull } from "react-icons/md";
 
 
-
-const detailsData = {
+export const detailsData = {
   
   2: {
     title: "Luxury Necklace",
@@ -258,6 +259,11 @@ const Details = () => {
            }
         });
     };
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const toggleExpand = () => {
+      setIsExpanded(!isExpanded);
+    };
 
 
 
@@ -267,14 +273,53 @@ const Details = () => {
       <img src={item.image} alt={`Image ${id}`} style={{width:"60%"}} />
     </div>
 
-    <div className="details" style={{display:"flex", flexDirection:"column", alignItems:"center", gap:"15px"}}>
-      <h1>{item ? item.title : `Figure ${id}`}</h1>
+    <div className="details" style={{display:"flex", flexDirection:"column", alignItems:"center"}}>
+      <h1 style={{ margin: "0 0 5px 0" }}>{item ? item.title : `Figure ${id}`}</h1>
+      {item && <h2 style={{color:"#ad9551",margin:"0"}}>Rs.{item.price * quantity}</h2>}
 
       <p>
         {item ? item.description : `No description available for Figure ${id}.`}
       </p>
 
-      {item && <h2 style={{color:"#ad9551"}}>Price : Rs. {item.price * quantity}</h2>}
+      <div className="certificate-card">
+        <div className="certificate-header">
+          <h3 className="certificate-title">
+            <span className="certificate-icon">verified</span>
+               GIA Certification
+          </h3>
+          <button className="certificate-button" onClick={toggleExpand}>
+              Expand  <MdOpenInFull size={18} />
+          </button>
+        </div>
+
+        <div className="certificate-body">
+          <div className={`certificate-image-container ${isExpanded ? "expanded" : ""}`}>
+            <div
+                className="certificate-image"
+                data-alt="GIA certificate paper details"
+                style={{ backgroundImage: `url('/images/cer.png')` }}
+                ></div>
+            </div>
+
+            <div className="certificate-info">
+                 <p className="certificate-label">Report Number</p>
+                 <p className="certificate-number">2458903341</p>
+                 <p className="certificate-text">
+                    Authenticity and origin verified by the Gemological Institute of America.
+                 </p>
+            </div>
+          </div>
+          {isExpanded && (
+        <div className="overlay" onClick={toggleExpand}>
+          <div
+            className="overlay-image"
+            style={{ backgroundImage: `url('/images/cer.png')` }}
+          ></div>
+        </div>
+      )}
+        </div>
+
+      
 
       <div style={{ marginTop: "20px", display: "flex", flexDirection:"column", gap:"25px", alignItems:"center" }}>
         {/* Quantity Row */}

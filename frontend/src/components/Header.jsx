@@ -2,6 +2,7 @@ import React from 'react';
 import { FaSearch } from "react-icons/fa"; 
 import { FaShoppingCart } from "react-icons/fa";
 import { Link } from 'react-router-dom';
+import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 
@@ -35,7 +36,7 @@ const Header = () => {
 
     const searchBarStyle = {
         display: 'flex',
-        border : '1px solid #ccc',
+        border: '1px solid rgba(173, 149, 81, 0.6)',
         borderRadius: '4px',
         overflow: 'hidden',
         height: '30px',
@@ -55,6 +56,8 @@ const Header = () => {
         outline: "none",
         fontSize: "16px",
         height: "100%",
+        backgroundColor: "#27001a",
+        color: "white",
   };
 
     const buttonStyle = {
@@ -66,6 +69,7 @@ const Header = () => {
         padding: "0 10px",
         cursor: "pointer",
         height: "100%",
+        backgroundColor: "#27001a",
     };
 
     const imgStyle = {
@@ -76,6 +80,11 @@ const Header = () => {
     const handleSearch = () => {
         alert(`Searching for: ${searchTerm}`);
     };
+    const navLinkStyle = ({ isActive }) => ({
+       textDecoration: isActive ? "underline" : "none",
+       textUnderlineOffset: "6px",
+       color: isActive ? "#ad9551" : "white",
+});
 
 
     return (
@@ -85,20 +94,21 @@ const Header = () => {
             </div>
             <nav>
                 <ul className='nav-links' style={navLinksStyle}>
-                    <li><Link to="/" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
-      onMouseLeave={(e) => (e.target.style.color = "white")} >Home</Link></li>
-                    <li><Link to="/about" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
-      onMouseLeave={(e) => (e.target.style.color = "white")} >About Us</Link></li>
-                    <li><Link to="/contact" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
-      onMouseLeave={(e) => (e.target.style.color = "white")} >Contact Us</Link></li>
-                    <li><Link to="/login" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
-      onMouseLeave={(e) => (e.target.style.color = "white")} >Login</Link></li>
+                    <li><NavLink to="/" style={navLinkStyle} >Home</NavLink></li>
+
+                    <li><NavLink to="/product" style={navLinkStyle} >Products</NavLink></li>
+
+                    <li><NavLink to="/about" style={navLinkStyle} >About Us</NavLink></li>
+
+                    <li><NavLink to="/contact" style={navLinkStyle} >Contact Us</NavLink></li>
+                    
+                    <li><NavLink to="/login" style={navLinkStyle} >Login</NavLink></li>
                     
                 </ul>
             </nav>
             <div className='search-bar' style={searchBarStyle}>
                 <input type="text" placeholder="Search" style={inputStyle} value={searchTerm} onChange={ (e) => setSearchTerm(e.target.value)}/>
-                <button style={buttonStyle} onClick={handleSearch}><FaSearch size={20} color="#27001a" /></button>
+                <button style={buttonStyle} onClick={handleSearch}><FaSearch size={20} color="#cdaf5b" /></button>
             </div>
            <div className='cart' style={{ cursor: "pointer" }} onClick={handleCartClick}>
             <img src="/images/shopping-cart-01-svgrepo-com (1).svg" style={{height:"35px"}} alt="Cart" />

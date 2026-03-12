@@ -7,7 +7,7 @@ const Footer = () => {
   const topSection = {
     backgroundColor: "#ad9551", // gold color
     color: "#27001a",
-    padding: "30px 200px",
+    padding: "5px 200px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
@@ -73,7 +73,7 @@ const Footer = () => {
   const headingStyle = {
     fontFamily: "'Montserrat', sans-serif",
     fontWeight: "500",
-    fontSize: "26px",
+    fontSize: "22px",
     fontoptionalsize: "32px",
   };
 
@@ -81,7 +81,7 @@ const Footer = () => {
     <footer>
       {/* Top Contact Section */}
       <div style={topSection}>
-        <h2 style={headingStyle}>If you have any questions or need <br/>assistance please reach out to us</h2>
+        <h2 style={headingStyle}>If you have any questions or need assistance<br></br> please reach out to us</h2>
         <div style={{ display: "flex", alignItems: "center", gap: "60px" }}>
           <Link to="/contact">
             <button style={contactButton}>Contact Us</button>

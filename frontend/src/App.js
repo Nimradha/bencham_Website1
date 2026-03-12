@@ -15,6 +15,7 @@ import ResetPassword from './components/resetPassword';
 import Details from './components/Details';
 import Buy from './components/buy';
 import Cart from './components/cart';
+import Product from './components/Product';
 import { CartProvider } from './components/CartContext';
 import './App.css';
 
@@ -73,6 +74,7 @@ function App() {
         <Route path="/resetPassword" element={<ResetPassword />} />
         <Route path="/details/:id" element={<Details />} />
         <Route path="/buy" element={<Buy />} />
+        <Route path="/product" element={<Product />} />
         <Route
           path="/cart"
           element={

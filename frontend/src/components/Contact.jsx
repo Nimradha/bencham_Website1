@@ -49,7 +49,7 @@ const Contact = () => {
 
     
   const container = {
-    backgroundColor: '#fff',
+    backgroundColor: '#27001a',
     fontFamily: "'Montserrat', sans-serif",
   };
 
@@ -85,39 +85,43 @@ const Contact = () => {
     alignItems: 'flex-start',
     gap: '60px',
     padding: '60px 120px',
-    backgroundColor: '#fff',
+    backgroundColor: '#27001a',
   };
 
   const contactInfo = {
     width: '35%',
-    color: '#27001a',
+      background: 'linear-gradient(to right, #1a1405, #111)',
   };
 
   const contactForm = {
-    width: '60%',
-    background: '#fff',
+    width: '40%',
+    background: '#27001a',
     padding: '30px',
     boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
     borderRadius: '8px',
+    border: '1px solid rgba(173, 149, 81, 0.6)',
   };
 
   const inputStyle = {
     width: '100%',
     padding: '10px',
     marginBottom: '15px',
-    border: '1px solid #ccc',
+    border: '1px solid rgba(173, 149, 81, 0.4)',
     borderRadius: '4px',
     fontFamily: "'Montserrat', sans-serif",
+    marginRight: '10px',
+    background: '#27001a',
   };
 
   const formButton = {
-    backgroundColor: '#27001a',
-    color: 'white',
+    backgroundColor: '#c3a75a',
+    color: 'black',
     border: 'none',
     padding: '10px 25px',
     borderRadius: '5px',
     cursor: 'pointer',
     fontFamily: "'Montserrat', sans-serif",
+    fontWeight: '500',
   };
 
   const formButtonHover = {
@@ -125,11 +129,12 @@ const Contact = () => {
   };
 
   const heading = {
-    color: '#27001a',
+    color: 'white',
     fontWeight: '500',
     marginBottom: '30px',
-    fontSize: '32px',
+    fontSize: '30px',
     marginLeft: '-70px',
+    fontFamily: "'montserrat', sans-serif",
   };
 
   const iconStyle = { marginLeft: '20px', color: '#27001a',fontSize: '22px' };
@@ -143,6 +148,8 @@ const Contact = () => {
 
   return (
     <div style={container}>
+      <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "35px", color: "#cdaf5b" }}>Contact Our Boutique</h1>
+            <p style={{fontFamily: "'Montserrat', sans-serif",fontSize: "20px",color: "#ebe2c7"}}>Experience the brilliance of natural certified gems.Our concierges are<br></br> available to assist with custom orders and inquires.</p>
       
 
       {/* Contact info and form */}
@@ -151,27 +158,27 @@ const Contact = () => {
         <div style={contactInfo}>
           <h2 style={heading}>Contact Info</h2>
           <div style={{ display: "flex", alignItems: "flex-start", marginBottom: "20px" ,marginLeft:"77px"}}>
-            <FaMapMarkerAlt style={{ color: "#27001a", fontSize: "20px", marginRight: "10px", marginTop: "4px" }} />
+            <FaMapMarkerAlt style={{ color: "#c3a75a", fontSize: "20px", marginRight: "10px", marginTop: "4px" }} />
             <div>
-              <strong style={{ color: "#27001a" ,marginLeft:"-60px"}}>Address</strong>
-              <p style={{ margin: "5px 0 0 0", color: "#27001a" ,marginBottom:"20px"}}>Horana,SriLanka</p>
+              <strong style={{ color: "#c3a75a" ,marginLeft:"-60px"}}>Address</strong>
+              <p style={{ margin: "5px 0 0 0", color: "white" ,marginBottom:"20px"}}>Horana,SriLanka</p>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "flex-start", marginBottom: "20px" ,marginLeft:"77px"}}>
-            <FaPhone style={{ color: "#27001a", fontSize: "20px", marginRight: "10px", marginTop: "4px" }} />
+            <FaPhone style={{ color: "#c3a75a", fontSize: "20px", marginRight: "10px", marginTop: "4px" }} />
             <div>
-              <strong style={{ color: "#27001a" ,marginLeft:"-30px"}}>Call Us</strong>
-              <p style={{ margin: "5px 0 0 0", color: "#27001a", marginBottom: "20px" }}>
+              <strong style={{ color: "#c3a75a" ,marginLeft:"-30px"}}>Call Us</strong>
+              <p style={{ margin: "5px 0 0 0", color: "#c3a75a", marginBottom: "20px" }}>
   <a
     href="tel:+775850202"
     style={{
-      color: "#27001a",
+      color: "white",
       textDecoration: "none",
       transition: "color 0.3s ease",
     }}
-    onMouseOver={(e) => (e.target.style.color = "#ad9551")}
-    onMouseOut={(e) => (e.target.style.color = "#27001a")}
+    onMouseOver={(e) => (e.target.style.color = "#ebe2c7")}
+    onMouseOut={(e) => (e.target.style.color = "white")}
   >
     +775850202
   </a>
@@ -181,26 +188,26 @@ const Contact = () => {
           </div>
 
           <div style={{ display: "flex", alignItems: "flex-start", marginBottom: "20px" ,marginLeft:"77px"}}>
-            <FaEnvelope style={{ color: "#27001a", fontSize: "20px", marginRight: "10px", marginTop: "4px" }} />
+            <FaEnvelope style={{ color: "#c3a75a", fontSize: "20px", marginRight: "10px", marginTop: "4px" }} />
             <div>
-              <strong style={{ color: "#27001a" ,marginLeft:"-160px"}}>Email Us</strong>
+              <strong style={{ color: "#c3a75a" ,marginLeft:"-160px"}}>Email Us</strong>
               <p style={{
                  margin: "10px 0 0 0",
                  marginBottom: "20px",
-                 color: "#27001a",
+                 color: "#c3a75a",
                  display: "block", // ensures it's treated as a block-level element
              }}>
            <a
            href="mailto:fonseka.chamath@gmail.com"
            style={{
-            color: "#27001a",
+            color: "white",
             textDecoration: "none",
             transition: "color 0.3s ease",
             display: "inline-block", // makes it easier to control positioning
             marginTop: "5px",
           }}
-          onMouseOver={(e) => (e.target.style.color = "#ad9551")}
-          onMouseOut={(e) => (e.target.style.color = "#27001a")}
+          onMouseOver={(e) => (e.target.style.color = "#ebe2c7")}
+          onMouseOut={(e) => (e.target.style.color = "white")}
          >
           fonseka.chamath@gmail.com
          </a>
@@ -212,7 +219,7 @@ const Contact = () => {
 
           
 
-          <h3 style={heading}>Follow Us On</h3>
+          <h3 style={{color:"white",marginLeft:"-100px"}}>Follow Us On</h3>
           <div style={socialIcons}>
             <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer">
                 <FaFacebook size={35} color="#1877F2" />
@@ -231,11 +238,33 @@ const Contact = () => {
         <div style={contactForm}>
           <h2 style={heading}>Send Us A Message!</h2>
           <form onSubmit={handleSubmit}>
-            <input type="text" name="name" placeholder="Name" style={inputStyle} value={formData.name} onChange={handleChange} required/>
-            <input type="email" name='email' placeholder="Email" style={inputStyle} value={formData.email} onChange={handleChange} required/>
-            <input type="text" name='phone' placeholder="Phone No." style={inputStyle} value={formData.phone} onChange={handleChange} required/>
-            <input type="text" name='location' placeholder="Location" style={inputStyle} value={formData.location} onChange={handleChange} required/>
-            <textarea placeholder="Message" name='message' rows="5" style={inputStyle} value={formData.message} onChange={handleChange} required></textarea>
+
+            <div style={{ display: "flex", gap: "100px"}}>
+              <div style={{ display: "flex", flexDirection: "column",gap: "10px",alignItems: "flex-start" }}>
+                <label style={{color:"white"}}>Full Name</label>
+                <input type="text" name="name" placeholder="Name" style={inputStyle} value={formData.name} onChange={handleChange} required/>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column",gap: "10px",alignItems: "flex-start" }}>
+                <label style={{color:"white"}}>Phone Number</label>
+                <input type="text" name='phone' placeholder="Phone No." style={inputStyle} value={formData.phone} onChange={handleChange} required/>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px",alignItems: "flex-start" }}>
+                <label style={{color:"white"}}>Email Address</label>
+                <input type="email" name='email' placeholder="Email" style={inputStyle} value={formData.email} onChange={handleChange} required/>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px",alignItems: "flex-start" }}>
+                <label style={{color:"white"}}>Location</label>
+                <input type="text" name='location' placeholder="Location" style={inputStyle} value={formData.location} onChange={handleChange} required/>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px",alignItems: "flex-start" }}>
+                <label style={{color:"white"}}>Message</label>
+                <textarea placeholder="Message" name='message' rows="5" style={inputStyle} value={formData.message} onChange={handleChange} required></textarea>
+            </div>
+            
             <button type="submit" style={formButton}>Submit</button>
           </form>
         </div>

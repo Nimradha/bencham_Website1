@@ -2,17 +2,21 @@ import React from "react";
 import { FaRegEye } from "react-icons/fa";
 import {LuTarget} from "react-icons/lu";
 import { FaHandHoldingHeart } from "react-icons/fa";
+import { FaCertificate } from "react-icons/fa";
+import  {App} from "../App.css";
 
 const About = () => {
     const about = {
-        width: '100%',
-        background: '#ffffffd7',
-        padding: '30px',
+        width: '90%',
+        background: '#27001a',
+        padding: '30px 30px 30px 30px',
         boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
         borderRadius: '8px',
-  
-        display: 'flex',          // makes it a flex container
-        flexDirection: 'column',     // aligns children horizontally
+        border: '1px solid rgba(173, 149, 81, 0.6)',
+        display: 'flex',          
+        flexDirection: 'column',     
+        marginLeft: 'auto',
+        marginRight: 'auto',
         
     };
     const paragraphStyle = {
@@ -76,8 +80,59 @@ const About = () => {
     return (
         <>
              <div style={about}>
-                 <h1>About Us</h1>
-                 <p style={paragraphStyle}>Bencham Jewellers, a trusted name for over six decades, is one of Sri Lanka's most recognised fine jewellers,<br></br> renowned for our bespoke jewellery. We take pride in our commitment to excellence, offering the purest 22-karat gold jewellery</p>
+                <div style={{ backgroundColor: "#27001a", padding: "2rem", display: "flex",position: "relative", alignItems: "flex-start",gap: "70px" }}>
+  
+  
+                  <div style={{ flex: "1", maxWidth: "65%" }}>
+                     <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "35px", color: "#cdaf5b", marginBottom: "1rem",textAlign: "left" }}>
+                        Our Certification Promise
+                     </h1>
+                     <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "20px", color: "#ebe2c7", lineHeight: 1.6 ,textAlign: "left",wordBreak:"normal",overflowWrap:"normal"}}>
+                       Every gemstone in our collection comes with a comprehensive certification of authenticity from Srilankan renowned gemological laboratories.
+                       We believe in total transparency providing you with documented peace of mind regarding the origin, quality and natural state of your pendant.
+                     </p>
+                  </div>
+
+  
+                  <div style={{ display: "flex", gap: "20px", alignItems: "flex-end" }}>
+    
+                    <div className="aboutcard" style={{
+                     position: "relative",
+                     backgroundColor: "#27001a",
+                     borderRadius: "12px",
+                     padding: "1rem",
+                     boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                     zIndex: 1
+                    }}>
+                      <div className="card-header" style={{ borderBottom: "1px solid rgba(205,175,91,0.2)", paddingBottom: "0.5rem", marginBottom: "0.5rem" }}>
+                         <div className="bar-short" style={{ height: "8px", width: "50px", backgroundColor: "rgba(205,175,91,0.4)", marginBottom: "4px" }}></div>
+                         <div className="bar-long" style={{ height: "16px", width: "150px", backgroundColor: "rgba(255,255,255,0.1)" }}></div>
+                      </div>
+
+                      <div className="card-content">
+                         <div className="line" style={{ height: "8px", width: "100%", backgroundColor: "rgba(255,255,255,0.05)", marginBottom: "4px" }}></div>
+                         <div className="line" style={{ height: "8px", width: "100%", backgroundColor: "rgba(255,255,255,0.05)", marginBottom: "4px" }}></div>
+                         <div className="line-short" style={{ height: "8px", width: "75%", backgroundColor: "rgba(255,255,255,0.05)" }}></div>
+                      </div>
+
+                      <div className="card-footer" style={{ display: "flex", justifyContent: "flex-end", marginTop: "1rem" }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: "36px", color: "#cdaf5b" }}>verified</span>
+                      </div>
+                    </div>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                      fontSize: "150px",
+                      color: "#cdaf5b",
+                      opacity: 0.2,
+                        
+                    }}
+                    >
+                      verified_user
+                    </span>
+                </div>
+
+            </div>
              </div>
 
              <section style={videoGrid}>
