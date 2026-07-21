@@ -10,13 +10,32 @@ import { useState, useEffect } from "react";
 const Header = () => {
     const [searchTerm, setSearchTerm] = React.useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+    const [userEmail, setUserEmail] = useState(localStorage.getItem("userEmail") || "");
+    const [showDropdown, setShowDropdown] = useState(false);
     const navigate = useNavigate();
 
-    // Keep login state in sync when token changes
+    // Extract first name from email (e.g. "nimradha@gmail.com" → "NIMRADHA")
+    const getFirstName = (email) => {
+        if (!email) return "";
+        const localPart = email.split("@")[0];            // "nimradha.silva"
+        const first = localPart.split(/[._\-]/)[0];       // "nimradha"
+        return first.toUpperCase();                        // "NIMRADHA"
+    };
+    const firstName = getFirstName(userEmail);
+
+    // Keep login state in sync when token changes (e.g. after modal login)
     useEffect(() => {
-        const checkLogin = () => setIsLoggedIn(!!localStorage.getItem("token"));
+        const checkLogin = () => {
+            setIsLoggedIn(!!localStorage.getItem("token"));
+            setUserEmail(localStorage.getItem("userEmail") || "");
+        };
         window.addEventListener("storage", checkLogin);
-        return () => window.removeEventListener("storage", checkLogin);
+        // Also poll every second to catch same-tab changes
+        const interval = setInterval(checkLogin, 1000);
+        return () => {
+            window.removeEventListener("storage", checkLogin);
+            clearInterval(interval);
+        };
     }, []);
 
     const handleLogout = () => {
@@ -24,6 +43,8 @@ const Header = () => {
         localStorage.removeItem("userEmail");
         localStorage.removeItem("cart");
         setIsLoggedIn(false);
+        setUserEmail("");
+        setShowDropdown(false);
         navigate("/");
     };
 
@@ -118,24 +139,210 @@ const Header = () => {
                     <li><NavLink to="/contact" style={navLinkStyle} >Contact Us</NavLink></li>
                     
                     {isLoggedIn ? (
-                        <li>
+                        <li style={{ position: "relative" }}>
+                            {/* ── Account button ── */}
                             <button
-                                onClick={handleLogout}
+                                onClick={() => setShowDropdown(prev => !prev)}
                                 style={{
-                                    background: "none",
-                                    border: "1px solid #ad9551",
-                                    color: "#ad9551",
+                                    background: "#ad9551",
+                                    border: "2px solid #ad9551",
+                                    color: "#27001a",
                                     cursor: "pointer",
-                                    fontSize: "15px",
-                                    padding: "4px 14px",
+                                    fontSize: "13px",
+                                    fontWeight: "700",
+                                    padding: "8px 18px",
                                     borderRadius: "4px",
+                                    letterSpacing: "0.6px",
+                                    fontFamily: "inherit",
+                                    whiteSpace: "nowrap",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
                                 }}
                             >
-                                Logout
+                                <span style={{ fontSize: "16px" }}>👤</span>
+                                {firstName ? `${firstName}'S ACCOUNT` : "MY ACCOUNT"}
+                                <span style={{ fontSize: "10px", marginLeft: "2px" }}>▼</span>
                             </button>
+
+                            {/* ── Dropdown menu ── */}
+                            {showDropdown && (
+                                <>
+                                {/* Click-outside overlay (invisible) */}
+                                <div
+                                    style={{ position: "fixed", inset: 0, zIndex: 999 }}
+                                    onClick={() => setShowDropdown(false)}
+                                />
+
+                                <div style={{
+                                    position: "absolute",
+                                    top: "calc(100% + 14px)",
+                                    left: "50%",
+                                    transform: "translateX(-50%)",
+                                    background: "#27001a",
+                                    border: "1px solid rgba(173,149,81,0.4)",
+                                    borderRadius: "8px",
+                                    width: "280px",
+                                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                                    zIndex: 1000,
+                                    overflow: "hidden",
+                                }}>
+                                    {/* Triangle pointer */}
+                                    <div style={{
+                                        position: "absolute",
+                                        top: "-8px",
+                                        left: "50%",
+                                        transform: "translateX(-50%)",
+                                        width: 0,
+                                        height: 0,
+                                        borderLeft: "9px solid transparent",
+                                        borderRight: "9px solid transparent",
+                                        borderBottom: "9px solid #27001a",
+                                        filter: "drop-shadow(0 -2px 2px rgba(0,0,0,0.3))",
+                                    }} />
+
+                                    {/* Menu items */}
+                                    {[
+                                        { icon: "/images/smile.png",          label: "Manage My Account",          route: "/manageAccount" },
+                                        { icon: "/images/orders.png",         label: "My Orders",                  route: null },
+                                        { icon: "/images/heart.png",          label: "My Wishlist & Followed Stores", route: null },
+                                        { icon: "/images/recommendation.png", label: "My Reviews",                 route: null },
+                                        { icon: "/images/return.png",         label: "My Returns & Cancellations", route: null },
+                                    ].map((item) => (
+                                        <div
+                                            key={item.label}
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "14px",
+                                                padding: "13px 20px",
+                                                cursor: "pointer",
+                                                color: "white",
+                                                fontSize: "14px",
+                                                fontWeight: "400",
+                                                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                                                transition: "background 0.15s",
+                                                fontFamily: "inherit",
+                                                whiteSpace: "nowrap",
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
+                                            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                                            onClick={() => { if (item.route) { setShowDropdown(false); navigate(item.route); } }}
+                                        >
+                                            <span style={{
+                                                width: "34px",
+                                                height: "34px",
+                                                borderRadius: "50%",
+                                                border: "1.5px solid rgba(255,255,255,0.2)",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                flexShrink: 0,
+                                                background: "rgba(255,255,255,0.07)",
+                                            }}>
+                                                <img src={item.icon} alt="" style={{ width: "18px", height: "18px", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
+                                            </span>
+                                            {item.label}
+                                        </div>
+                                    ))}
+
+                                    {/* Logout */}
+                                    <div
+                                        onClick={handleLogout}
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "14px",
+                                            padding: "13px 20px",
+                                            cursor: "pointer",
+                                            color: "#ad9551",
+                                            fontSize: "14px",
+                                            fontWeight: "400",
+                                            transition: "background 0.15s",
+                                            fontFamily: "inherit",
+                                            whiteSpace: "nowrap",
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
+                                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                                    >
+                                        <span style={{
+                                            width: "34px",
+                                            height: "34px",
+                                            borderRadius: "50%",
+                                            border: "1.5px solid rgba(255,255,255,0.15)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            flexShrink: 0,
+                                            background: "rgba(255,255,255,0.07)",
+                                        }}>
+                                            <img src="/images/logout.png" alt="" style={{ width: "18px", height: "18px", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
+                                        </span>
+                                        Logout
+                                    </div>
+                                </div>
+                                </>
+                            )}
                         </li>
                     ) : (
-                        <li><NavLink to="/login" style={navLinkStyle}>Login</NavLink></li>
+                        <>
+                            <li>
+                                <NavLink to="/login" style={{ textDecoration: "none" }}>
+                                    <button style={{
+                                        background: "none",
+                                        border: "2px solid #ad9551",
+                                        color: "#ad9551",
+                                        cursor: "pointer",
+                                        fontSize: "14px",
+                                        fontWeight: "600",
+                                        padding: "7px 20px",
+                                        borderRadius: "4px",
+                                        letterSpacing: "0.5px",
+                                        fontFamily: "inherit",
+                                        transition: "all 0.2s ease",
+                                    }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.background = "#ad9551";
+                                        e.currentTarget.style.color = "#27001a";
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.background = "none";
+                                        e.currentTarget.style.color = "#ad9551";
+                                    }}
+                                    >
+                                        LOGIN
+                                    </button>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to="/createAccount" style={{ textDecoration: "none" }}>
+                                    <button style={{
+                                        background: "#ad9551",
+                                        border: "2px solid #ad9551",
+                                        color: "#27001a",
+                                        cursor: "pointer",
+                                        fontSize: "14px",
+                                        fontWeight: "600",
+                                        padding: "7px 20px",
+                                        borderRadius: "4px",
+                                        letterSpacing: "0.5px",
+                                        fontFamily: "inherit",
+                                        transition: "all 0.2s ease",
+                                    }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.background = "#c9a84c";
+                                        e.currentTarget.style.borderColor = "#c9a84c";
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.background = "#ad9551";
+                                        e.currentTarget.style.borderColor = "#ad9551";
+                                    }}
+                                    >
+                                        SIGN UP
+                                    </button>
+                                </NavLink>
+                            </li>
+                        </>
                     )}
                     
                 </ul>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
@@ -6,6 +6,7 @@ import { CartContext } from "./CartContext";
 import "../App.css";
 import { MdOpenInFull } from "react-icons/md";
 import { isLoggedIn } from "./auth";
+import LoginModal from "./LoginModal";
 
 
 export const detailsData = {
@@ -191,10 +192,26 @@ export const detailsData = {
 
 
 
+// ── Once-per-day login prompt helper ─────────────────────────────────────────
+// Key format: "loginPromptDate"  value: "YYYY-MM-DD"
+// On the first Buy Now / Add to Cart click of the day we show the modal.
+// After the user logs in (or if already logged in), we record today's date so
+// we don't show it again until tomorrow.
+const todayStr = () => new Date().toISOString().slice(0, 10); // "2025-07-21"
+
+const hasPromptedToday = () =>
+  localStorage.getItem("loginPromptDate") === todayStr();
+
+const markPromptedToday = () =>
+  localStorage.setItem("loginPromptDate", todayStr());
+
 const Details = () => {
     const { id } = useParams();
     const item = detailsData[id];
     const [quantity, setQuantity] = useState(1);
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    // pendingAction stores what to do after login succeeds
+    const pendingAction = useRef(null);
     
     const navigate = useNavigate();
 
@@ -202,6 +219,30 @@ const Details = () => {
     const { addToCart } = useContext(CartContext);
     const { cartItems, increaseQty, decreaseQty, removeFromCart } = useContext(CartContext);
     const cartItem = cartItems.find(item => item.id === id);
+
+    // Called when login succeeds inside the modal
+    const handleModalLoginSuccess = () => {
+      markPromptedToday();
+      setShowLoginModal(false);
+      // Retry the action that triggered the modal
+      if (pendingAction.current) {
+        pendingAction.current();
+        pendingAction.current = null;
+      }
+    };
+
+    // Guard: if not logged in, show modal on FIRST click of the day.
+    // On subsequent clicks same day (already logged in), pass through.
+    const requireLogin = (action) => {
+      if (isLoggedIn()) {
+        // Already authenticated — run immediately
+        action();
+        return;
+      }
+      // Not logged in — show modal (first time today: modal, after login: direct)
+      pendingAction.current = action;
+      setShowLoginModal(true);
+    };
 
     
 
@@ -217,47 +258,32 @@ const Details = () => {
       cursor: "pointer",
     };
     const handleAddToCart = () => {
-       if (!isLoggedIn()) {
-        navigate("/login", {
-        state: { from: window.location.pathname }
-       });
-        return;
-      }
-
-      if (!item) return;
-
-      addToCart({
-       id,
-       title: item.title,
-       price: item.price,
-       quantity: quantity,
-       image: item.image
+      requireLogin(() => {
+        if (!item) return;
+        addToCart({
+          id,
+          title: item.title,
+          price: item.price,
+          quantity: quantity,
+          image: item.image,
+        });
+        alert("Item added to cart!");
       });
-
-      alert("Item added to cart!");
     };
 
-
-
     const handleBuyNow = () => {
-        if (!isLoggedIn()) {
-          navigate("/login", {
-           state: { from: window.location.pathname }
-          });
-          return;
-        }
-
+      requireLogin(() => {
         if (!item) return;
-
         navigate("/buy", {
-           state: {
-               id,
-               title: item.title,
-               price: item.price,
-               quantity: quantity,
-               image: item.image
-           }
+          state: {
+            id,
+            title: item.title,
+            price: item.price,
+            quantity: quantity,
+            image: item.image,
+          },
         });
+      });
     };
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -268,6 +294,7 @@ const Details = () => {
 
 
     return (
+  <>
   <div className="details-container">
     <div className="image" style={{backgroundColor:"rgba(255,255,255,0.05)"}}> 
       <img src={item.image} alt={`Image ${id}`} style={{width:"60%"}} />
@@ -365,13 +392,7 @@ const Details = () => {
           cursor: "pointer",
           marginTop: "10px"
         }}
-        onClick={() => {
-          if (!isLoggedIn()) {
-            navigate("/login", { state: { from: "/cart" } });
-            return;
-          }
-          navigate("/cart");
-        }}
+        onClick={() => requireLogin(() => navigate("/cart"))}
       >
         Go to cart
       </button>
@@ -417,6 +438,18 @@ const Details = () => {
 </div>
 
   </div>
+
+      {/* ── Login modal (Daraz-style popup) ── */}
+      {showLoginModal && (
+        <LoginModal
+          onClose={() => {
+            setShowLoginModal(false);
+            pendingAction.current = null;
+          }}
+          onLoginSuccess={handleModalLoginSuccess}
+        />
+      )}
+  </>
 );
 
 };

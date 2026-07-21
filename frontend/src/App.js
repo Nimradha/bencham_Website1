@@ -16,6 +16,7 @@ import Details from './components/Details';
 import Buy from './components/buy';
 import Cart from './components/cart';
 import Product from './components/Product';
+import ManageAccount from './components/ManageAccount';
 import { CartProvider } from './components/CartContext';
 import './App.css';
 
@@ -85,6 +86,14 @@ function App() {
           } 
         />
         <Route path="/product" element={<Product />} />
+        <Route
+          path="/manageAccount"
+          element={
+            <ProtectedRoute>
+              <ManageAccount />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/cart"
           element={

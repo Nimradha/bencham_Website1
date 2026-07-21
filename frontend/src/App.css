@@ -197,6 +197,7 @@
 .form-group label {
   margin-bottom: 5px;
   font-weight: 500;
+  color: #27001a;
 }
 
 .form-group input {
@@ -211,6 +212,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.modal-header h2 {
+  color: #27001a;
+  font-size: 18px;
+  margin: 0;
+}
+.close-btn {
+  cursor: pointer;
+  font-size: 20px;
+  color: #27001a;
 }
 .modal-overlay {
   position: fixed;
@@ -234,7 +245,7 @@
   border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
-.close-btn {
+.close-btn-old {
   cursor: pointer;
   font-size: 20px;
 }
@@ -243,6 +254,9 @@
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
+}
+.modal-box p {
+  color: #27001a;
 }
 
 .cancel-btn {
