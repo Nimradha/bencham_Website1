@@ -1,9 +1,10 @@
 import React from "react";
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useGoogleLogin } from "@react-oauth/google";
 
 
 const CreateAccount = () => {
@@ -16,6 +17,39 @@ const CreateAccount = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [errors, setErrors] = useState({});
+    const navigate = useNavigate();
+
+    const googleLogin = useGoogleLogin({
+      onSuccess: async (tokenResponse) => {
+        try {
+          const res = await fetch("http://localhost:3000/api/google-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ access_token: tokenResponse.access_token }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            // Clear cart if a different user was logged in before
+            const prevEmail = localStorage.getItem("userEmail");
+            if (prevEmail && prevEmail !== data.email) {
+              localStorage.removeItem("cart");
+            }
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("userEmail", data.email);
+            navigate("/");
+          } else {
+            alert(data.message || "Google login failed");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Google login failed");
+        }
+      },
+      onError: () => {
+        console.log("Google Login Failed");
+        alert("Google sign-in failed. Please try again.");
+      },
+    });
 
     const togglePassword = () => setShowPassword(!showPassword);
 
@@ -66,9 +100,15 @@ const CreateAccount = () => {
           const data = await res.json();
 
          if (res.ok) {
-          localStorage.setItem("token", data.token);   // ✅ SAVE TOKEN
+          // New account — clear any previous user's cart
+          const prevEmail = localStorage.getItem("userEmail");
+          if (prevEmail && prevEmail !== email) {
+            localStorage.removeItem("cart");
+          }
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("userEmail", email);
           alert("Account created successfully!");
-          window.location.href = "/"; // or use navigate()
+          navigate("/");
         } else {
           alert(data.message);
         }
@@ -99,14 +139,7 @@ const CreateAccount = () => {
     height: "500px"
   };
 
-  const input = {
-    width: "100%",
-    padding: "12px",
-    marginBottom: "15px",
-    border: "1px solid #d0d7de",
-    borderRadius: "6px",
-    fontSize: "16px",
-  };
+
 
   const button = {
     width: "45%",
@@ -124,19 +157,7 @@ const CreateAccount = () => {
     alignItems: "center",
   };
 
-  const divider = {
-    display: "flex",
-    alignItems: "center",
-    margin: "20px 0",
-    color: "#999",
-    fontSize: "14px",
-  };
 
-  const line = {
-    flex: 1,
-    height: "1px",
-    backgroundColor: "#ddd",
-  };
 
   const errorStyle = {
     color: "red",
@@ -148,12 +169,7 @@ const CreateAccount = () => {
   
 
 
-  const formContainer = {
-  display: "flex",
-  flexDirection: "column",
-  width: "100%",       // takes full width
-  maxWidth: "600px",   // keeps form neat
-  };
+
 
  const labelStyle = {
   textAlign: "left",
@@ -184,20 +200,7 @@ const CreateAccount = () => {
 
 
 
-  const oauthButton = {
-    width: "100%",
-    padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "6px",
-    backgroundColor: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-    cursor: "pointer",
-    marginBottom: "10px",
-    fontSize: "16px",
-  };
+
 
   return (
     <div style={container}>
@@ -309,7 +312,7 @@ const CreateAccount = () => {
 
         <div style={{display: "flex",justifyContent: "center",gap: "20px", }}>
          <button type="button"style={button} onClick={handleCreateAccount}>Create Account</button>
-         <button style={button}>
+         <button style={button} onClick={() => googleLogin()}>
           <FcGoogle size={22} style={{ marginRight: "10px" }} />
           Sign in with Google
          </button>

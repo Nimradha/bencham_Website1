@@ -1,8 +1,8 @@
-import React, { useContext, useState} from "react";
+import React, { useContext, useState,useEffect} from "react";
 import { CartContext } from "./CartContext";
 import { MdDelete } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-
+import { isLoggedIn } from "./auth";
 
 const Cart = () => {
 
@@ -14,7 +14,14 @@ const Cart = () => {
   } = useContext(CartContext);
 
   const [selectedItems, setSelectedItems] = useState([]);
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+  if (!isLoggedIn()) {
+    navigate("/login");
+  }
+}, []);
 
   const handleCheckout = () => {
   
@@ -28,7 +35,7 @@ const Cart = () => {
    }
 
   
-  navigate("/buy", { state: selectedProducts[0] });
+  navigate("/buy", { state: selectedProducts[0]});
 };
 
 
@@ -54,10 +61,10 @@ const Cart = () => {
     <div className="checkout-container">
 
       <div className="card">
-        <h2>My Cart</h2>
+        <h3 style={{color:"white",fontFamily:"'Montserrat', sans-serif"}}>My Cart</h3>
 
        {cartItems.map((item) => (
-       <div key={item.id} className="cart-row">
+       <div key={item.id} className="cart-row" style={{color:"#b9c7de"}}>
 
       
          <div className="cart-left">
@@ -84,16 +91,16 @@ const Cart = () => {
 
       {/* RIGHT SIDE */}
       <div className="cart-right">
-        <p style={{color:"#27001a"}}>Rs. {item.price* item.quantity}</p>
+        <p style={{color:"white"}}>Rs. {item.price* item.quantity}</p>
 
         <div className="qty-box">
-          <button onClick={() => decreaseQty(item.id)}>-</button>
+          <button onClick={() => decreaseQty(item.id)} style={{backgroundColor:"#ad9551",borderRadius:"10%"}}>-</button>
           <span>{item.quantity}</span>
-          <button onClick={() => increaseQty(item.id)}>+</button>
+          <button onClick={() => increaseQty(item.id)} style={{backgroundColor:"#ad9551",borderRadius:"10%"}}>+</button>
         </div>
 
         
-          <img src="/images/delete-svgrepo-com.svg" alt="Delete" style={{width:"20px",cursor:"pointer"}} onClick={() => removeFromCart(item.id)}/>
+          <MdDelete size={20} style={{cursor:"pointer",color:"#b9c7de"}} onClick={() => removeFromCart(item.id)}/>
         
       </div>
 
@@ -103,19 +110,19 @@ const Cart = () => {
 
 
       <div className="summary-card">
-        <h3>Order Summary</h3>
+        <h3 style={{color:"white",fontFamily:"'Montserrat', sans-serif",fontStyle:"italic"}}>Order Summary</h3>
 
         <div className="summary-row">
-          <span>Subtotal</span>
-          <span>Rs. {subtotal}</span>
+          <span style={{color:"#b9c7de"}}>Subtotal</span>
+          <span style={{color:"white"}}>Rs. {subtotal}</span>
         </div>
 
         <div className="summary-row total">
-          <span>Total</span>
-          <span>Rs. {subtotal}</span>
+          <span style={{color:"#b9c7de"}}>Total</span>
+          <span style={{color:"white"}}>Rs. {subtotal}</span>
         </div>
 
-        <button className="proceed" onClick={handleCheckout}>
+        <button className="proceed" onClick={handleCheckout} style={{color:"black",borderRadius:"5px"}}>
           PROCEED TO CHECKOUT ({cartItems.length})
         </button>
       </div>

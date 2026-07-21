@@ -6,6 +6,7 @@ import { createDecipheriv } from 'crypto';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import https from 'https';
 
 
 const app = express();
@@ -52,6 +53,8 @@ const addressSchema = new mongoose.Schema({
 
 const Address = mongoose.model("Address", addressSchema);
 
+
+
 const authMiddleware = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1]; // expecting "Bearer <token>"
   if (!token) {
@@ -97,6 +100,55 @@ app.post('/api/contact', async (req, res) => {
         console.error(err);
         res.status(500).json({ message: 'Failed to send message.' });
     }
+});
+
+// Google OAuth login — exchanges Google access_token for an app JWT
+app.post("/api/google-login", async (req, res) => {
+  try {
+    const { access_token } = req.body;
+    if (!access_token) {
+      return res.status(400).json({ message: "Access token is required" });
+    }
+
+    // Fetch the user's Google profile using Node's built-in https module
+    const profile = await new Promise((resolve, reject) => {
+      https.get(
+        `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`,
+        (response) => {
+          if (response.statusCode !== 200) {
+            reject(new Error(`Google API returned status ${response.statusCode}`));
+            return;
+          }
+          let data = '';
+          response.on('data', (chunk) => { data += chunk; });
+          response.on('end', () => {
+            try { resolve(JSON.parse(data)); }
+            catch (e) { reject(new Error('Failed to parse Google response')); }
+          });
+        }
+      ).on('error', reject);
+    });
+
+    const { email, name } = profile;
+    if (!email) {
+      return res.status(400).json({ message: "Could not retrieve email from Google" });
+    }
+
+    // Find or create the user in MongoDB
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = new User({ name, email, password: "" }); // no password for Google users
+      await user.save();
+    }
+
+    // Issue an app JWT
+    const token = jwt.sign({ id: user._id }, "your_jwt_secret", { expiresIn: "7d" });
+    res.json({ token, name: user.name, email: user.email });
+
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 app.post("/api/login", async (req, res) => {

@@ -3,8 +3,9 @@ import { useLocation, useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { CartContext } from "./CartContext";
-import  {App} from "../App.css";
+import "../App.css";
 import { MdOpenInFull } from "react-icons/md";
+import { isLoggedIn } from "./auth";
 
 
 export const detailsData = {
@@ -201,15 +202,14 @@ const Details = () => {
     const { addToCart } = useContext(CartContext);
     const { cartItems, increaseQty, decreaseQty, removeFromCart } = useContext(CartContext);
     const cartItem = cartItems.find(item => item.id === id);
-    const isLoggedIn = () => {
-     return sessionStorage.getItem("user") !== null;
-    };
+
+    
 
 
 
     const contactButton = {
-      backgroundColor: "#27001a", // purple button
-      color: "white",
+      backgroundColor: "#ad9551", // purple button
+      color: "black",
       border: "none",
       borderRadius: "8px",
       padding: "10px 20px",
@@ -269,15 +269,15 @@ const Details = () => {
 
     return (
   <div className="details-container">
-    <div className="image"> 
+    <div className="image" style={{backgroundColor:"rgba(255,255,255,0.05)"}}> 
       <img src={item.image} alt={`Image ${id}`} style={{width:"60%"}} />
     </div>
 
-    <div className="details" style={{display:"flex", flexDirection:"column", alignItems:"center"}}>
-      <h1 style={{ margin: "0 0 5px 0" }}>{item ? item.title : `Figure ${id}`}</h1>
-      {item && <h2 style={{color:"#ad9551",margin:"0"}}>Rs.{item.price * quantity}</h2>}
+    <div className="details" style={{display:"flex", flexDirection:"column", alignItems:"center",backgroundColor:"#27001a"}}>
+      <h1 style={{ margin: "0 0 5px 0",color:"#d4af37",fontStyle:"italic" }}>{item ? item.title : `Figure ${id}`}</h1>
+      {item && <h2 style={{color:"white",margin:"0"}}>Rs.{item.price * quantity}</h2>}
 
-      <p>
+      <p style={{color:"#798598"}}>
         {item ? item.description : `No description available for Figure ${id}.`}
       </p>
 
@@ -322,20 +322,7 @@ const Details = () => {
       
 
       <div style={{ marginTop: "20px", display: "flex", flexDirection:"column", gap:"25px", alignItems:"center" }}>
-        {/* Quantity Row */}
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <h3 style={{ color: "#5a5a5a", fontWeight: "500", margin: 0 }}>Quantity</h3>
-
-          <button onClick={() => quantity > 1 && setQuantity(quantity - 1)} style={{ width:"35px", height:"35px", border:"1px solid #ddd", background:"#f5f5f5", cursor:"pointer", fontSize:"18px" }}>
-            -
-          </button>
-
-          <span style={{ fontSize:"18px", padding:"0 10px" }}>{quantity}</span>
-
-          <button onClick={() => setQuantity(quantity + 1)} style={{ width:"35px", height:"35px", border:"1px solid #ddd", background:"#f5f5f5", cursor:"pointer", fontSize:"18px" }}>
-            +
-          </button>
-        </div>
+        
 
         {/* Buttons Row */}
         <div style={{ display:"flex", gap:"20px" }}>
@@ -344,10 +331,10 @@ const Details = () => {
         </div>
       </div>
     </div>
-    <div className="checkout">
+    <div className="checkout" style={{backgroundColor:"#27001a"}}>
   {cartItem ? (
-    <div style={{ padding: "20px", backgroundColor: "#f5f5f5", borderRadius: "10px" }}>
-      <h2 style={{ textAlign: "center" }}>
+    <div style={{ padding: "20px", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "10px" }}>
+      <h2 style={{ textAlign: "center",color:"#798598" }}>
         LKR {cartItem.price * cartItem.quantity}.00
       </h2>
 
@@ -378,7 +365,13 @@ const Details = () => {
           cursor: "pointer",
           marginTop: "10px"
         }}
-        onClick={() => navigate("/cart")}
+        onClick={() => {
+          if (!isLoggedIn()) {
+            navigate("/login", { state: { from: "/cart" } });
+            return;
+          }
+          navigate("/cart");
+        }}
       >
         Go to cart
       </button>
@@ -393,22 +386,22 @@ const Details = () => {
         />
 
         <div style={{ display: "flex", flexDirection: "column", gap: "5px", alignItems: "center", textAlign: "center" }}>
-          <h4 style={{ margin: 0 }}>{cartItem.title}</h4>
-          <h3>LKR {cartItem.price}.00</h3>
+          <h4 style={{ margin: 0 ,color:"#b9c7de"}}>{cartItem.title}</h4>
+          <h3 style={{color:"#798598"}}>LKR {cartItem.price * cartItem.quantity}.00</h3>
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "center" }}>
             <button
               onClick={() => decreaseQty(cartItem.id)}
-              style={{ width: "30px", height: "30px" }}
+              style={{ width: "30px", height: "30px",backgroundColor:"#ad9551",borderRadius:"10%" }}
             >
               -
             </button>
 
-            <span>{cartItem.quantity}</span>
+            <span style={{color:"white"}}>{cartItem.quantity}</span>
 
             <button
               onClick={() => increaseQty(cartItem.id)}
-              style={{ width: "30px", height: "30px" }}
+              style={{ width: "30px", height: "30px" ,backgroundColor:"#ad9551",borderRadius:"10%"}}
             >
               +
             </button>

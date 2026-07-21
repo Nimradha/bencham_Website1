@@ -1,6 +1,7 @@
 import { FaCreditCard ,FaGooglePay,FaPaypal,FaCcVisa} from "react-icons/fa";
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation ,useNavigate} from "react-router-dom";
+import { useEffect } from "react";
 
 
 const Buy = () => {
@@ -8,6 +9,7 @@ const Buy = () => {
   const product = location.state;
   const [cartItem, setCartItem] = useState(product);
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addresses, setAddresses] = useState([]);
   const [selected, setSelected] = useState("");
 
   const subtotal = cartItem.price * cartItem.quantity;
@@ -21,9 +23,41 @@ const Buy = () => {
   const [city, setCity] = useState("");
   const [addressLine, setAddressLine] = useState("");
 
+
+useEffect(() => {
+  const fetchAddresses = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch("http://localhost:3000/api/address", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setAddresses(data);
+      }
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  fetchAddresses();
+}, []);
+
   const handleSaveAddress = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+    alert("Please login first");
+    return;
+    }
    try {
-    const token = localStorage.getItem("token"); // assuming you saved JWT here
+     // assuming you saved JWT here
     const res = await fetch("http://localhost:3000/api/address", {
       method: "POST",
       headers: {
@@ -43,7 +77,8 @@ const Buy = () => {
 
     const data = await res.json();
     if (res.ok) {
-      alert("Address saved successfully!");
+      
+      setAddresses([...addresses, data]);
       setShowAddressModal(false);
       // optionally reset form
       setFullName("");
@@ -53,6 +88,7 @@ const Buy = () => {
       setCity("");
       setAddressLine("");
       setSelected("");
+      alert("Address saved successfully!");
     } else {
       alert(data.message);
     }
@@ -67,11 +103,13 @@ const Buy = () => {
   return <h2 style={{ textAlign: "center" }}>No product selected</h2>;
 }
 
+
+
   return (
     <div className="checkout-container">
       <div className="checkout-left">
         <div className="card">
-          <h3>Shipping address</h3>
+          <h3 style={{color:"white",fontFamily:"'Montserrat', sans-serif"}}>Shipping address</h3>
           <button
            className="add-address-btn"
            onClick={() => setShowAddressModal(true)}
@@ -79,17 +117,45 @@ const Buy = () => {
           + Add new address
           </button>
 
+          <div style={{ marginTop: "15px" }}>
+  {addresses.length === 0 ? (
+    <p style={{ color: "#b9c7de" }}>No saved addresses</p>
+  ) : (
+    (() => {
+      const latest = addresses[addresses.length - 1]; // get the most recent
+      return (
+        <div
+          key={latest._id}
+          style={{
+            border: "1px solid #ad9551",
+            borderRadius: "8px",
+            padding: "10px",
+            marginTop: "10px",
+            color: "#b9c7de",
+            backgroundColor: "rgba(255,255,255,0.05)",
+          }}
+        >
+          <h4>{latest.fullName} ({latest.label})</h4>
+          <p>{latest.phone}</p>
+          <p>{latest.addressLine}</p>
+          <p>{latest.city}, {latest.district}, {latest.province}</p>
+        </div>
+      );
+    })()
+  )}
+</div>
+
         </div>
 
         <div className="card">
-          <h3>Payment Methods</h3>
+          <h3 style={{color:"white",fontFamily:"'Montserrat', sans-serif"}}>Payment Methods</h3>
 
           <div className="payment-option" style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
             <input type="radio" name="payment" />
-            <FaCreditCard style={{ marginRight: "8px" }} />
+            <FaCreditCard style={{ marginRight: "8px" ,color:"#b9c7de"}} />
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-               <span>Add a new card</span>
-               <div style={{ display: "flex", gap: "8px", alignItems:"flex-start" }}>
+               <span style={{color:"#b9c7de",marginLeft:"16px"}}>Add a new card</span>
+               <div style={{ display: "flex", gap: "8px", alignItems:"flex-start",marginLeft:"16px" }}>
                  <button style={{height:"28px",background:"white",border:"1px solid black",marginRight:"10px"}}><img src="/images/visa-logo-svgrepo-com.svg" height={"25px"}></img></button>
                  <button style={{height:"28px",background:"white",border:"1px solid black"}}><img src="/images/mastercard-svgrepo-com.svg" height={"25px"}></img></button>
                </div>
@@ -100,13 +166,13 @@ const Buy = () => {
           <div className="payment-option">
             <input type="radio" name="payment" />
             <img src="/images/google-pay-primary-logo-logo-svgrepo-com.svg" style={{ marginRight: "8px" ,height:"30px"}} />
-            <span>Google Pay</span>
+            <span style={{color:"#b9c7de"}}>Google Pay</span>
           </div>
 
           <div className="payment-option">
             <input type="radio" name="payment" />
             <FaPaypal style={{ marginRight: "8px" ,color:"blue"}} />
-            <span>PayPal</span>
+            <span style={{color:"#b9c7de",marginLeft:"14px"}}>PayPal</span>
           </div>
         </div>
       
@@ -121,8 +187,8 @@ const Buy = () => {
                />
 
             <div style={{ display: "flex", flexDirection: "column", gap: "5px" ,alignItems: "center",textAlign: "center" }}>
-              <h4 style={{margin:0}}>{cartItem.title}</h4>
-              <h3>LKR {(cartItem.price * cartItem.quantity).toFixed(2)}</h3>
+              <h4 style={{margin:0,color:"#b9c7de",fontFamily:"'Montserrat', sans-serif"}}>{cartItem.title}</h4>
+              <h3 style={{color:"#798598"}}>LKR {(cartItem.price * cartItem.quantity).toFixed(2)}</h3>
 
               <div style={{ display: "flex", alignItems: "center", gap: "10px",justifyContent: "center" }}>
 
@@ -135,12 +201,12 @@ const Buy = () => {
                     : 1
                 })
               }
-                 style={{ width: "30px", height: "30px" }}
+                 style={{ width: "30px", height: "30px" ,backgroundColor:"#ad9551",borderRadius:"10%"}}
                >
                   -
                </button>
 
-              <span>{cartItem.quantity}</span>
+              <span style={{color:"white"}}>{cartItem.quantity}</span>
 
               <button
               onClick={() =>
@@ -149,7 +215,7 @@ const Buy = () => {
                   quantity: cartItem.quantity + 1
                 })
               }
-              style={{ width: "30px", height: "30px" }}
+              style={{ width: "30px", height: "30px",backgroundColor:"#ad9551",borderRadius:"10%" }}
               >
                 +
               </button>
@@ -165,26 +231,26 @@ const Buy = () => {
       </div>
 
       <div className="summary-card">
-        <h3>Summary</h3>
+        <h2 style={{fontStyle:"italic",fontFamily:"'Montserrat', sans-serif",color:"white"}}> Order Summary</h2>
 
         <div className="summary-row">
-          <span>Subtotal</span>
-          <span>LKR {subtotal.toFixed(2)}</span>
+          <span style={{color:"#b9c7de"}}>Subtotal</span>
+          <span style={{color:"white"}}>LKR {subtotal.toFixed(2)}</span>
         </div>
 
         <div className="summary-row">
-          <span>Taxes</span>
-          <span>LKR {tax.toFixed(2)}</span>
+          <span style={{color:"#b9c7de"}}>Taxes</span>
+          <span style={{color:"white"}}>LKR {tax.toFixed(2)}</span>
         </div>
 
         <hr />
 
         <div className="summary-row total">
-          <span>Total</span>
-          <span>LKR {total.toFixed(2)}</span>
+          <span style={{color:"#b9c7de"}}>Total</span>
+          <span style={{color:"white"}}>LKR {total.toFixed(2)}</span>
         </div>
 
-        <button className="place-order">Place order</button>
+        <button className="place-order" style={{color:"black",fontFamily:"'Montserrat', sans-serif",fontWeight:"bold"}}>Place order</button>
       </div>
       {showAddressModal && (
         <div className="modal-overlay">

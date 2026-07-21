@@ -4,13 +4,28 @@ import { FaShoppingCart } from "react-icons/fa";
 import { Link } from 'react-router-dom';
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-
+import { useState, useEffect } from "react";
 
 
 const Header = () => {
     const [searchTerm, setSearchTerm] = React.useState('');
+    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
     const navigate = useNavigate();
 
+    // Keep login state in sync when token changes
+    useEffect(() => {
+        const checkLogin = () => setIsLoggedIn(!!localStorage.getItem("token"));
+        window.addEventListener("storage", checkLogin);
+        return () => window.removeEventListener("storage", checkLogin);
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("cart");
+        setIsLoggedIn(false);
+        navigate("/");
+    };
 
     const headerStyle = {
         display: "flex",
@@ -102,7 +117,26 @@ const Header = () => {
 
                     <li><NavLink to="/contact" style={navLinkStyle} >Contact Us</NavLink></li>
                     
-                    <li><NavLink to="/login" style={navLinkStyle} >Login</NavLink></li>
+                    {isLoggedIn ? (
+                        <li>
+                            <button
+                                onClick={handleLogout}
+                                style={{
+                                    background: "none",
+                                    border: "1px solid #ad9551",
+                                    color: "#ad9551",
+                                    cursor: "pointer",
+                                    fontSize: "15px",
+                                    padding: "4px 14px",
+                                    borderRadius: "4px",
+                                }}
+                            >
+                                Logout
+                            </button>
+                        </li>
+                    ) : (
+                        <li><NavLink to="/login" style={navLinkStyle}>Login</NavLink></li>
+                    )}
                     
                 </ul>
             </nav>

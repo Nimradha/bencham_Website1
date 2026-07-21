@@ -10,6 +10,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const handleLogin = async () => {
     if (!email || !password) {
     alert("Please enter email and password");
@@ -26,7 +27,13 @@ const Login = () => {
       const data = await res.json();
 
       if (res.ok) {
+        // Clear cart if a different user was logged in before
+        const prevEmail = localStorage.getItem("userEmail");
+        if (prevEmail && prevEmail !== email) {
+          localStorage.removeItem("cart");
+        }
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userEmail", email);
         navigate(location.state?.from?.pathname || "/");
       } else {
         alert(data.message);
@@ -41,13 +48,34 @@ const Login = () => {
   const location = useLocation();
 
   const login = useGoogleLogin({
-  onSuccess: tokenResponse => {
-    sessionStorage.setItem("user", JSON.stringify(tokenResponse));
-    navigate(location.state?.from?.pathname || "/");
-
+  onSuccess: async (tokenResponse) => {
+    try {
+      const res = await fetch("http://localhost:3000/api/google-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: tokenResponse.access_token }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // Clear cart if a different user was logged in before
+        const prevEmail = localStorage.getItem("userEmail");
+        if (prevEmail && prevEmail !== data.email) {
+          localStorage.removeItem("cart");
+        }
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userEmail", data.email);
+        navigate(location.state?.from?.pathname || "/");
+      } else {
+        alert(data.message || "Google login failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Google login failed");
+    }
   },
   onError: () => {
     console.log("Google Login Failed");
+    alert("Google sign-in failed. Please try again.");
   },
  });
   const container = {
@@ -60,7 +88,7 @@ const Login = () => {
   };
 
   const card = {
-    backgroundColor: "#161201",
+    backgroundColor: "rgba(255,255,255,0.05)",
     padding: "0 40px 40px 40px",
     borderRadius: "8px",
     width: "450px",
@@ -81,7 +109,7 @@ const loginImage = {
 const imageOverlay = {
   position: "absolute",
   inset: 0,
-  background: "linear-gradient(to top, rgba(69, 64, 64, 0.2) 30%, rgba(50, 49, 49, 0.8) 100%, transparent 100%)",
+  background: "linear-gradient(to bottom, rgba(88, 65, 65, 0.2) 30%, rgba(49, 2, 2, 0.8) 100%), rgba(255,255,255,0.05)",
   zIndex: 1,
 };
 
@@ -101,19 +129,11 @@ const overlayText = {
   textShadow: "0 2px 6px rgba(0,0,0,0.6)",
   zIndex: 2,
 };
-  const input = {
-    width: "100%",
-    padding: "12px",
-    marginBottom: "15px",
-    border: "1px solid #d0d7de",
-    borderRadius: "6px",
-    fontSize: "16px",
-  };
 
   const button = {
     width: "45%",
     padding: "12px",
-    backgroundColor: "#ebe2c7",
+    backgroundColor: "#d4be82",
     color: "black",
     border: "none",
     borderRadius: "6px",
@@ -126,27 +146,6 @@ const overlayText = {
     alignItems: "center",
   };
 
-  const divider = {
-    display: "flex",
-    alignItems: "center",
-    margin: "20px 0",
-    color: "#999",
-    fontSize: "14px",
-  };
-
-  const line = {
-    flex: 1,
-    height: "1px",
-    backgroundColor: "#ddd",
-  };
-  const heading = {
-    color: 'white',
-    fontWeight: '500',
-    marginBottom: '30px',
-    fontSize: '30px',
-    marginLeft: '-70px',
-    fontFamily: "'montserrat', sans-serif",
-  };
 
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -172,25 +171,13 @@ const inputStyle = {
   borderRadius: "4px",
   boxSizing: "border-box", // VERY IMPORTANT
   backgroundColor: "#161201",
+  color: "white",
 };
 
 
 
 
-  const oauthButton = {
-    width: "100%",
-    padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "6px",
-    backgroundColor: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-    cursor: "pointer",
-    marginBottom: "10px",
-    fontSize: "16px",
-  };
+
 
   return (
     <div style={container}>
@@ -226,7 +213,7 @@ const inputStyle = {
                    color: "#999",
                    pointerEvents: "none", // so it doesn't block input
                   }}>mail</span>
-                <input type="email" placeholder="name@bencham.com" style={inputStyle} value={email} onChange={(e) => setEmail(e.target.value)} style={{
+                <input type="email" placeholder="name@bencham.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{
                    ...inputStyle,
                     paddingLeft: "50px", // make space for the icon
                  }}/>
@@ -234,7 +221,7 @@ const inputStyle = {
              
 
              <label style={labelStyle}>Password</label><br></br>
-             <input type="password" placeholder="••••••••" style={inputStyle} />
+             <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
          </div><br></br>
 
 

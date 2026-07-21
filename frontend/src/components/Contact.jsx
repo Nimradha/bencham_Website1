@@ -90,7 +90,7 @@ const Contact = () => {
 
   const contactInfo = {
     width: '35%',
-      background: 'linear-gradient(to right, #1a1405, #111)',
+      background: 'rgba(255,255,255,0.05)',
   };
 
   const contactForm = {

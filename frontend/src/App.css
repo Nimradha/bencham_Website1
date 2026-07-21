@@ -77,7 +77,7 @@
   gap: 30px;
   padding: 40px;
   align-items: flex-start;
-  background-color: #f5f5f5;
+  background-color: #27001a;
 }
 
 .checkout-left {
@@ -89,7 +89,7 @@
 
 .card {
   flex: 2;
-  background: white;
+  background: rgba(255,255,255,0.05);
   padding: 20px;
   border-radius: 8px;
   text-align: left;
@@ -98,7 +98,7 @@
   
 }
 .summary-card {
-  background: white;
+  background: rgba(255,255,255,0.05);
   padding: 25px;
   border-radius: 8px;
   width: 400px;
@@ -107,14 +107,13 @@
 }
 .summary-row{
   flex: 1;
-  background: white;
+  background: rgba(255,255,255,0.05);
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 2px;
   height: fit-content;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 8px 0;
 }
 .place-order {
   background-color: #ad9551;
@@ -149,7 +148,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 15px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .cart-left {
@@ -587,7 +586,7 @@
   margin-bottom: 2rem;
   padding: 1.5rem;
   border-radius: 1rem;
-  background-color: rgba(228, 243, 199, 0.05); /* equivalent of bg-primary/5 */
+  background-color: rgba(255,255,255,0.05); /* equivalent of bg-primary/5 */
   border: 1px solid #ad9551;/* border-primary/20 */
 }
 
@@ -605,10 +604,11 @@
   font-family: "Arial", sans-serif; /* replace with your font-display */
   font-size: 1.125rem; /* text-lg */
   font-weight: bold;
+  color: white; /* primary color */
 }
 
 .certificate-icon {
-  color: #ad9551; /* primary color */
+  color: #e0c200; /* primary color */
   font-family: "Material Symbols Outlined";
 }
 
@@ -618,7 +618,7 @@
   gap: 0.25rem;
   font-size: 0.875rem; /* text-sm */
   font-weight: bold;
-  color: #ad9551; /* primary color */
+  color: #e0c200; /* primary color */
   background: none;
   border: none;
   cursor: pointer;
@@ -681,14 +681,14 @@
 }
 
 .certificate-number {
-  color: #111827; /* slate-900 */
+  color: #ad9551; /* slate-900 */
   font-weight: bold;
   margin: 0;
   text-align: left;
 }
 
 .certificate-text {
-  color: #4b5563; /* slate-600 */
+  color: #798598; /* slate-600 */
   text-align: left;
   margin: 0;
 }
@@ -735,6 +735,7 @@
   background-position: center;
   border-radius: 8px;
 }
+
 
 @media (min-width: 768px) {
   .featured-grid {
