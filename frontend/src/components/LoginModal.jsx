@@ -31,13 +31,10 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
       const data = await res.json();
 
       if (res.ok) {
-        const prevEmail = localStorage.getItem("userEmail");
-        if (prevEmail && prevEmail !== email) {
-          localStorage.removeItem("cart");
-        }
         localStorage.setItem("token", data.token);
         localStorage.setItem("userEmail", email);
-        onLoginSuccess();   // tell the parent — retry the action
+        window.dispatchEvent(new Event("userChanged"));
+        onLoginSuccess();
       } else {
         alert(data.message || "Login failed");
       }
@@ -60,12 +57,9 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
         });
         const data = await res.json();
         if (res.ok) {
-          const prevEmail = localStorage.getItem("userEmail");
-          if (prevEmail && prevEmail !== data.email) {
-            localStorage.removeItem("cart");
-          }
           localStorage.setItem("token", data.token);
           localStorage.setItem("userEmail", data.email);
+          window.dispatchEvent(new Event("userChanged"));
           onLoginSuccess();
         } else {
           alert(data.message || "Google login failed");

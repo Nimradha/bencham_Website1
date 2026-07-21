@@ -27,13 +27,9 @@ const Login = () => {
       const data = await res.json();
 
       if (res.ok) {
-        // Clear cart if a different user was logged in before
-        const prevEmail = localStorage.getItem("userEmail");
-        if (prevEmail && prevEmail !== email) {
-          localStorage.removeItem("cart");
-        }
         localStorage.setItem("token", data.token);
         localStorage.setItem("userEmail", email);
+        window.dispatchEvent(new Event("userChanged"));
         navigate(location.state?.from?.pathname || "/");
       } else {
         alert(data.message);
@@ -57,13 +53,9 @@ const Login = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        // Clear cart if a different user was logged in before
-        const prevEmail = localStorage.getItem("userEmail");
-        if (prevEmail && prevEmail !== data.email) {
-          localStorage.removeItem("cart");
-        }
         localStorage.setItem("token", data.token);
         localStorage.setItem("userEmail", data.email);
+        window.dispatchEvent(new Event("userChanged"));
         navigate(location.state?.from?.pathname || "/");
       } else {
         alert(data.message || "Google login failed");

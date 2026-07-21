@@ -41,10 +41,10 @@ const Header = () => {
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("userEmail");
-        localStorage.removeItem("cart");
         setIsLoggedIn(false);
         setUserEmail("");
         setShowDropdown(false);
+        window.dispatchEvent(new Event("userChanged"));
         navigate("/");
     };
 

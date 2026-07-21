@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AddressFormModal from "./AddressFormModal";
 
@@ -23,6 +23,25 @@ const ManageAccount = () => {
   const [activeSection, setActiveSection] = useState("profile");
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
+  const [editingAddress, setEditingAddress] = useState(null);
+
+  // Fetch saved addresses on load
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const res = await fetch("http://localhost:3000/api/address", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) setSavedAddresses(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchAddresses();
+  }, []);
 
   // ── Sidebar items ──────────────────────────────────────────────────────────
   const sidebarSections = [
@@ -252,26 +271,58 @@ const ManageAccount = () => {
                 </label>
               </div>
 
-              {/* Address Book card */}
+              {/* Address Book card — Default Shipping */}
               <div style={card}>
                 <div style={cardTitle}>
                   Address Book
-                  <button style={addBtn} onClick={() => setActiveSection("address")}>Add</button>
+                  <button style={editBtn} onClick={() => setActiveSection("address")}>EDIT</button>
                 </div>
-                <div style={emptyCard}>
-                  <span style={pinIcon}>📍</span>
-                  Save your shipping address here.
-                </div>
+                {savedAddresses.length > 0 ? (() => {
+                  const addr = savedAddresses[0];
+                  return (
+                    <>
+                      <p style={{ fontSize: "10px", color: "#d4be82", fontWeight: "600", letterSpacing: "0.8px", marginBottom: "8px", textTransform: "uppercase" }}>
+                        Default Shipping Address
+                      </p>
+                      <p style={{ ...profileName, marginBottom: "4px" }}>{addr.fullName}</p>
+                      <p style={{ ...profileEmail, marginBottom: "2px" }}>{addr.addressLine}</p>
+                      <p style={{ ...profileEmail, marginBottom: "2px" }}>
+                        {[addr.province, addr.district, addr.city].filter(Boolean).join(" · ")}
+                      </p>
+                      <p style={profileEmail}>(+94) {addr.phone}</p>
+                    </>
+                  );
+                })() : (
+                  <div style={emptyCard}>
+                    <span style={pinIcon}>📍</span>
+                    Save your shipping address here.
+                  </div>
+                )}
               </div>
 
-              {/* Billing card */}
+              {/* Billing card — Default Billing */}
               <div style={card}>
-                <div style={{ ...cardTitle }}>
-                  &nbsp;
-                </div>
-                <div style={emptyCard}>
-                  Save your billing address here.
-                </div>
+                <div style={cardTitle}>&nbsp;</div>
+                {savedAddresses.length > 0 ? (() => {
+                  const addr = savedAddresses[0];
+                  return (
+                    <>
+                      <p style={{ fontSize: "10px", color: "#d4be82", fontWeight: "600", letterSpacing: "0.8px", marginBottom: "8px", textTransform: "uppercase" }}>
+                        Default Billing Address
+                      </p>
+                      <p style={{ ...profileName, marginBottom: "4px" }}>{addr.fullName}</p>
+                      <p style={{ ...profileEmail, marginBottom: "2px" }}>{addr.addressLine}</p>
+                      <p style={{ ...profileEmail, marginBottom: "2px" }}>
+                        {[addr.province, addr.district, addr.city].filter(Boolean).join(" · ")}
+                      </p>
+                      <p style={profileEmail}>(+94) {addr.phone}</p>
+                    </>
+                  );
+                })() : (
+                  <div style={emptyCard}>
+                    Save your billing address here.
+                  </div>
+                )}
               </div>
             </div>
           </>
@@ -280,56 +331,139 @@ const ManageAccount = () => {
         {/* Address Book section */}
         {activeSection === "address" && (
           <>
-            <h2 style={mainTitle}>Address Book</h2>
+            {/* Title row */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
+              <h2 style={mainTitle}>Address Book</h2>
+              <div style={{ display: "flex", gap: "20px" }}>
+                <span style={{ fontSize: "13px", color: "#00a99d", cursor: "pointer" }}>Make default shipping address</span>
+                <span style={{ color: "rgba(255,255,255,0.3)" }}>|</span>
+                <span style={{ fontSize: "13px", color: "#00a99d", cursor: "pointer" }}>Make default billing address</span>
+              </div>
+            </div>
 
-            {/* Empty state card */}
             <div style={{
               backgroundColor: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(173,149,81,0.25)",
               borderRadius: "8px",
-              padding: "50px 40px 30px",
-              minHeight: "260px",
+              overflow: "hidden",
+              minHeight: "200px",
               display: "flex",
               flexDirection: "column",
-              justifyContent: "space-between",
             }}>
 
-              {/* Top: text + icon */}
-              <div>
-                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px", marginBottom: "28px" }}>
-                  Save your shipping and billing address here.
-                </p>
-                {/* Pin icon */}
-                <div style={{
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "50%",
-                  border: "2px solid rgba(255,255,255,0.2)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "22px",
-                  opacity: 0.35,
-                  marginLeft: "4px",
-                }}>
-                  📍
-                </div>
-              </div>
+              {savedAddresses.length > 0 ? (
+                <>
+                  {/* Table header */}
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "1.2fr 2fr 1.5fr 1.2fr 1.5fr 80px",
+                    padding: "14px 24px",
+                    borderBottom: "1px solid rgba(255,255,255,0.08)",
+                    fontSize: "12px",
+                    color: "rgba(255,255,255,0.4)",
+                    fontWeight: "500",
+                    letterSpacing: "0.3px",
+                  }}>
+                    <span>Full Name</span>
+                    <span>Address</span>
+                    <span>Province / District / City</span>
+                    <span>Phone Number</span>
+                    <span>Status</span>
+                    <span></span>
+                  </div>
 
-              {/* Bottom-right: ADD NEW ADDRESS button */}
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "30px" }}>
+                  {/* Address rows */}
+                  {savedAddresses.map((addr, idx) => (
+                    <div key={addr._id || idx} style={{
+                      display: "grid",
+                      gridTemplateColumns: "1.2fr 2fr 1.5fr 1.2fr 1.5fr 80px",
+                      padding: "18px 24px",
+                      borderBottom: idx < savedAddresses.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                      alignItems: "center",
+                      fontSize: "13px",
+                      color: "white",
+                    }}>
+                      {/* Full Name */}
+                      <span style={{ fontWeight: "500" }}>{addr.fullName}</span>
+
+                      {/* Address + label badge */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {addr.label && (
+                          <span style={{
+                            backgroundColor: addr.label === "home" ? "#f97316" : "#3b82f6",
+                            color: "white",
+                            fontSize: "10px",
+                            fontWeight: "700",
+                            padding: "2px 8px",
+                            borderRadius: "3px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            flexShrink: 0,
+                          }}>
+                            {addr.label}
+                          </span>
+                        )}
+                        <span style={{ color: "rgba(255,255,255,0.7)" }}>{addr.addressLine}</span>
+                      </div>
+
+                      {/* Province - District - City */}
+                      <span style={{ color: "rgba(255,255,255,0.6)" }}>
+                        {[addr.province, addr.district, addr.city].filter(Boolean).join(" - ")}
+                      </span>
+
+                      {/* Phone */}
+                      <span style={{ color: "rgba(255,255,255,0.7)" }}>{addr.phone}</span>
+
+                      {/* Status */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)" }}>Default Shipping Address</span>
+                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)" }}>Default Billing Address</span>
+                      </div>
+
+                      {/* EDIT */}
+                      <button
+                        onClick={() => { setEditingAddress(addr); setShowAddressModal(true); }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#00a99d",
+                          fontSize: "13px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                          letterSpacing: "0.5px",
+                          fontFamily: "inherit",
+                          padding: 0,
+                        }}
+                      >
+                        EDIT
+                      </button>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                /* Empty state */
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "40px", justifyContent: "space-between" }}>
+                  <div>
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px", marginBottom: "28px" }}>
+                      Save your shipping and billing address here.
+                    </p>
+                    <div style={{
+                      width: "48px", height: "48px", borderRadius: "50%",
+                      border: "2px solid rgba(255,255,255,0.2)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "22px", opacity: 0.35,
+                    }}>📍</div>
+                  </div>
+                </div>
+              )}
+
+              {/* ADD NEW ADDRESS button — always visible */}
+              <div style={{ display: "flex", justifyContent: "flex-end", padding: "20px 24px" }}>
                 <button
                   style={{
-                    backgroundColor: "#00a99d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    padding: "11px 22px",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    letterSpacing: "0.5px",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
+                    backgroundColor: "#00a99d", color: "white", border: "none",
+                    borderRadius: "4px", padding: "11px 22px", fontSize: "13px",
+                    fontWeight: "600", letterSpacing: "0.5px", cursor: "pointer", fontFamily: "inherit",
                   }}
                   onMouseEnter={e => e.currentTarget.style.backgroundColor = "#008f85"}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = "#00a99d"}
@@ -343,10 +477,20 @@ const ManageAccount = () => {
             {/* Address Form Modal */}
             {showAddressModal && (
               <AddressFormModal
-                onClose={() => setShowAddressModal(false)}
-                onSaved={(newAddr) => {
-                  setSavedAddresses(prev => [...prev, newAddr]);
+                initialData={editingAddress}
+                onClose={() => { setShowAddressModal(false); setEditingAddress(null); }}
+                onSaved={(savedAddr) => {
+                  if (editingAddress) {
+                    // update existing
+                    setSavedAddresses(prev =>
+                      prev.map(a => a._id === savedAddr._id ? savedAddr : a)
+                    );
+                  } else {
+                    // add new
+                    setSavedAddresses(prev => [...prev, savedAddr]);
+                  }
                   setShowAddressModal(false);
+                  setEditingAddress(null);
                 }}
               />
             )}

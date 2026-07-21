@@ -6,22 +6,29 @@ import React, { useState } from "react";
  *   onClose()          — called when user closes/cancels
  *   onSaved(newAddr)   — called after a successful API save, with the saved address object
  */
-const AddressFormModal = ({ onClose, onSaved }) => {
-  const [fullName, setFullName]       = useState("");
-  const [phone, setPhone]             = useState("");
-  const [province, setProvince]       = useState("");
-  const [district, setDistrict]       = useState("");
-  const [city, setCity]               = useState("");
-  const [addressLine, setAddressLine] = useState("");
-  const [selected, setSelected]       = useState("");
+const AddressFormModal = ({ onClose, onSaved, initialData = null }) => {
+  const isEditing = !!initialData;
+
+  const [fullName, setFullName]       = useState(initialData?.fullName    || "");
+  const [phone, setPhone]             = useState(initialData?.phone       || "");
+  const [province, setProvince]       = useState(initialData?.province    || "");
+  const [district, setDistrict]       = useState(initialData?.district    || "");
+  const [city, setCity]               = useState(initialData?.city        || "");
+  const [addressLine, setAddressLine] = useState(initialData?.addressLine || "");
+  const [selected, setSelected]       = useState(initialData?.label       || "");
 
   const handleSaveAddress = async () => {
     const token = localStorage.getItem("token");
     if (!token) { alert("Please login first"); return; }
 
+    const url    = isEditing
+      ? `http://localhost:3000/api/address/${initialData._id}`
+      : "http://localhost:3000/api/address";
+    const method = isEditing ? "PUT" : "POST";
+
     try {
-      const res = await fetch("http://localhost:3000/api/address", {
-        method: "POST",
+      const res = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -31,8 +38,8 @@ const AddressFormModal = ({ onClose, onSaved }) => {
 
       const data = await res.json();
       if (res.ok) {
-        alert("Address saved successfully!");
-        onSaved(data);   // tell the parent about the new address
+        alert(isEditing ? "Address updated successfully!" : "Address saved successfully!");
+        onSaved(data);
         onClose();
       } else {
         alert(data.message);
@@ -48,7 +55,7 @@ const AddressFormModal = ({ onClose, onSaved }) => {
       <div className="modal-box">
 
         <div className="modal-header">
-          <h2>Add new shipping Address</h2>
+          <h2>{isEditing ? "Edit Shipping Address" : "Add new shipping Address"}</h2>
           <span className="close-btn" onClick={onClose}>✕</span>
         </div>
 

@@ -197,16 +197,31 @@
 .form-group label {
   margin-bottom: 5px;
   font-weight: 500;
-  color: #27001a;
+  color: rgba(255,255,255,0.85);
 }
 
 .form-group input {
   padding: 8px;
   width: 80%;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(173,149,81,0.4);
+  border-radius: 4px;
+  color: white;
+}
+.form-group input::placeholder {
+  color: rgba(255,255,255,0.35);
 }
 .form-group select {
   padding: 8px;
   width: 85%;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(173,149,81,0.4);
+  border-radius: 4px;
+  color: white;
+}
+.form-group select option {
+  background: #27001a;
+  color: white;
 }
 .modal-header {
   display: flex;
@@ -214,14 +229,14 @@
   align-items: center;
 }
 .modal-header h2 {
-  color: #27001a;
+  color: white;
   font-size: 18px;
   margin: 0;
 }
 .close-btn {
   cursor: pointer;
   font-size: 20px;
-  color: #27001a;
+  color: rgba(255,255,255,0.7);
 }
 .modal-overlay {
   position: fixed;
@@ -239,11 +254,12 @@
 
 /* Modal box */
 .modal-box {
-  background: white;
+  background: #27001a;
+  border: 1px solid rgba(173,149,81,0.4);
   width: 650px;
   padding: 30px;
   border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
 .close-btn-old {
   cursor: pointer;
@@ -256,7 +272,7 @@
   margin-top: 20px;
 }
 .modal-box p {
-  color: #27001a;
+  color: rgba(255,255,255,0.75);
 }
 
 .cancel-btn {
@@ -275,19 +291,42 @@
   font-weight: 500;
   cursor: pointer;
 }
-.btn2{
+.btn2 {
   width: 150px;
-  height: 40px;
+  height: 45px;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
   cursor: pointer;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 13px;
+  transition: opacity 0.15s, transform 0.1s;
 }
-.btn2.active {
-  background-color: #f5ecd5;  /* selected color */
-  color: black;
-  border-color: #ad9551;
+
+/* Office — light blue */
+.buttons2 .btn2:nth-child(1) {
+  background-color: #dbeafe;
+  border: 2px solid #3b82f6;
+  color: #1d4ed8;
+}
+.buttons2 .btn2:nth-child(1):hover,
+.buttons2 .btn2:nth-child(1).active {
+  background-color: #bfdbfe;
+  border-color: #1d4ed8;
+}
+
+/* Home — light yellow */
+.buttons2 .btn2:nth-child(2) {
+  background-color: #fef9c3;
+  border: 2px solid #f97316;
+  color: #c2410c;
+}
+.buttons2 .btn2:nth-child(2):hover,
+.buttons2 .btn2:nth-child(2).active {
+  background-color: #fde68a;
+  border-color: #ea580c;
 }
 .buttons2 {
   display: flex;      /* 👈 puts buttons in same row */

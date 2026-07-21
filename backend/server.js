@@ -307,7 +307,7 @@ app.post("/api/address", authMiddleware, async (req, res) => {
     });
 
     await newAddress.save();
-    res.status(201).json({ message: "Address saved successfully", address: newAddress });
+    res.status(201).json(newAddress);
 
   } catch (error) {
     console.error(error);
@@ -327,8 +327,22 @@ app.get("/api/address", authMiddleware, async (req, res) => {
 });
 
 
-
-
+// Update an address
+app.put("/api/address/:id", authMiddleware, async (req, res) => {
+  try {
+    const { fullName, phone, province, district, city, addressLine, label } = req.body;
+    const updated = await Address.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
+      { fullName, phone, province, district, city, addressLine, label },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ message: "Address not found" });
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
