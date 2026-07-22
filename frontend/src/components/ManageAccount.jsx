@@ -4,7 +4,7 @@ import AddressFormModal from "./AddressFormModal";
 
 const ManageAccount = () => {
   const navigate = useNavigate();
-  const userEmail = localStorage.getItem("userEmail") || "";
+  const userEmail = sessionStorage.getItem("userEmail") || "";
 
   // Derive first name from email
   const firstName = userEmail
@@ -29,7 +29,7 @@ const ManageAccount = () => {
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         if (!token) return;
         const res = await fetch("http://localhost:3000/api/address", {
           headers: { Authorization: `Bearer ${token}` },

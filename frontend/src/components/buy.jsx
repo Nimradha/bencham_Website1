@@ -20,7 +20,7 @@ const Buy = () => {
 useEffect(() => {
   const fetchAddresses = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!token) return;
 
       const res = await fetch("http://localhost:3000/api/address", {

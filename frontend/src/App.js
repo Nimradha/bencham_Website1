@@ -25,7 +25,7 @@ function App() {
   const [showSplash, setShowSplash] = React.useState(true);
 
   const ProtectedRoute = ({ children }) => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     const location = useLocation();
 
     if (!token) {

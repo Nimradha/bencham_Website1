@@ -18,7 +18,7 @@ const AddressFormModal = ({ onClose, onSaved, initialData = null }) => {
   const [selected, setSelected]       = useState(initialData?.label       || "");
 
   const handleSaveAddress = async () => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (!token) { alert("Please login first"); return; }
 
     const url    = isEditing

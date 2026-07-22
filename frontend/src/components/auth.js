@@ -1,5 +1,4 @@
 export const isLoggedIn = () => {
-  const token = localStorage.getItem("token");
-  const user = sessionStorage.getItem("user"); 
-  return token !== null || user !== null;
+  const token = sessionStorage.getItem("token");
+  return token !== null;
 };

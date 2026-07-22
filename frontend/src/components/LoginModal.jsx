@@ -31,8 +31,8 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userEmail", email);
+        sessionStorage.setItem("token", data.token);
+        sessionStorage.setItem("userEmail", email);
         window.dispatchEvent(new Event("userChanged"));
         onLoginSuccess();
       } else {
@@ -57,8 +57,8 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
         });
         const data = await res.json();
         if (res.ok) {
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("userEmail", data.email);
+          sessionStorage.setItem("token", data.token);
+          sessionStorage.setItem("userEmail", data.email);
           window.dispatchEvent(new Event("userChanged"));
           onLoginSuccess();
         } else {

@@ -29,13 +29,9 @@ const CreateAccount = () => {
           });
           const data = await res.json();
           if (res.ok) {
-            // Clear cart if a different user was logged in before
-            const prevEmail = localStorage.getItem("userEmail");
-            if (prevEmail && prevEmail !== data.email) {
-              localStorage.removeItem("cart");
-            }
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("userEmail", data.email);
+            sessionStorage.setItem("token", data.token);
+            sessionStorage.setItem("userEmail", data.email);
+            window.dispatchEvent(new Event("userChanged"));
             navigate("/");
           } else {
             alert(data.message || "Google login failed");
@@ -100,13 +96,9 @@ const CreateAccount = () => {
           const data = await res.json();
 
          if (res.ok) {
-          // New account — clear any previous user's cart
-          const prevEmail = localStorage.getItem("userEmail");
-          if (prevEmail && prevEmail !== email) {
-            localStorage.removeItem("cart");
-          }
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("userEmail", email);
+          sessionStorage.setItem("token", data.token);
+          sessionStorage.setItem("userEmail", email);
+          window.dispatchEvent(new Event("userChanged"));
           alert("Account created successfully!");
           navigate("/");
         } else {

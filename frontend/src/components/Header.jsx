@@ -4,15 +4,19 @@ import { FaShoppingCart } from "react-icons/fa";
 import { Link } from 'react-router-dom';
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { CartContext } from "./CartContext";
 
 
 const Header = () => {
     const [searchTerm, setSearchTerm] = React.useState('');
-    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
-    const [userEmail, setUserEmail] = useState(localStorage.getItem("userEmail") || "");
+    const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem("token"));
+    const [userEmail, setUserEmail] = useState(sessionStorage.getItem("userEmail") || "");
     const [showDropdown, setShowDropdown] = useState(false);
     const navigate = useNavigate();
+
+    const { cartItems } = useContext(CartContext);
+    const cartCount = cartItems ? cartItems.reduce((acc, item) => acc + (item.quantity || 0), 0) : 0;
 
     // Extract first name from email (e.g. "nimradha@gmail.com" → "NIMRADHA")
     const getFirstName = (email) => {
@@ -26,8 +30,8 @@ const Header = () => {
     // Keep login state in sync when token changes (e.g. after modal login)
     useEffect(() => {
         const checkLogin = () => {
-            setIsLoggedIn(!!localStorage.getItem("token"));
-            setUserEmail(localStorage.getItem("userEmail") || "");
+            setIsLoggedIn(!!sessionStorage.getItem("token"));
+            setUserEmail(sessionStorage.getItem("userEmail") || "");
         };
         window.addEventListener("storage", checkLogin);
         // Also poll every second to catch same-tab changes
@@ -39,8 +43,8 @@ const Header = () => {
     }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userEmail");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("userEmail");
         setIsLoggedIn(false);
         setUserEmail("");
         setShowDropdown(false);
@@ -351,8 +355,28 @@ const Header = () => {
                 <input type="text" placeholder="Search" style={inputStyle} value={searchTerm} onChange={ (e) => setSearchTerm(e.target.value)}/>
                 <button style={buttonStyle} onClick={handleSearch}><FaSearch size={20} color="#cdaf5b" /></button>
             </div>
-           <div className='cart' style={{ cursor: "pointer" }} onClick={handleCartClick}>
+           <div className='cart' style={{ cursor: "pointer", position: "relative" }} onClick={handleCartClick}>
             <img src="/images/shopping-cart-01-svgrepo-com (1).svg" style={{height:"35px"}} alt="Cart" />
+            {isLoggedIn && cartCount > 0 && (
+                <span style={{
+                    position: "absolute",
+                    top: "-5px",
+                    right: "-10px",
+                    backgroundColor: "white",
+                    color: "#e65100",
+                    borderRadius: "50%",
+                    width: "18px",
+                    height: "18px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                    boxShadow: "0 2px 5px rgba(0,0,0,0.3)"
+                }}>
+                    {cartCount}
+                </span>
+            )}
            </div>
 
         </header>
