@@ -53,6 +53,37 @@ const addressSchema = new mongoose.Schema({
 
 const Address = mongoose.model("Address", addressSchema);
 
+const orderSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  items: [
+    {
+      title: String,
+      price: Number,
+      quantity: Number,
+      image: String
+    }
+  ],
+  shippingAddress: {
+    fullName: String,
+    phone: String,
+    addressLine: String,
+    city: String,
+    district: String,
+    province: String,
+    label: String
+  },
+  paymentMethod: String,
+  cardLast4: String,
+  subtotal: Number,
+  tax: Number,
+  totalAmount: Number,
+  status: { type: String, default: "Paid" },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Order = mongoose.model("Order", orderSchema);
+
+
 
 
 const authMiddleware = (req, res, next) => {
@@ -340,6 +371,45 @@ app.put("/api/address/:id", authMiddleware, async (req, res) => {
     res.json(updated);
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Create a new order
+app.post("/api/orders", authMiddleware, async (req, res) => {
+  try {
+    const { items, shippingAddress, paymentMethod, cardNumber, subtotal, tax, totalAmount } = req.body;
+
+    const cardLast4 = cardNumber ? cardNumber.slice(-4) : "";
+
+    const newOrder = new Order({
+      userId: req.user.id,
+      items,
+      shippingAddress,
+      paymentMethod,
+      cardLast4,
+      subtotal,
+      tax,
+      totalAmount,
+      status: "Paid"
+    });
+
+    await newOrder.save();
+    res.status(201).json({ message: "Order placed successfully!", order: newOrder });
+
+  } catch (error) {
+    console.error("Order creation error:", error);
+    res.status(500).json({ message: "Failed to place order" });
+  }
+});
+
+// Get user orders
+app.get("/api/orders", authMiddleware, async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    console.error("Fetch orders error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

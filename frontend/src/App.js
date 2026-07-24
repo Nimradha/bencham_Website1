@@ -17,6 +17,7 @@ import Buy from './components/buy';
 import Cart from './components/cart';
 import Product from './components/Product';
 import ManageAccount from './components/ManageAccount';
+import OrderSuccess from './components/OrderSuccess';
 import { CartProvider } from './components/CartContext';
 import './App.css';
 
@@ -99,6 +100,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Cart />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/order-success"
+          element={
+            <ProtectedRoute>
+              <OrderSuccess />
             </ProtectedRoute>
           }
         />
