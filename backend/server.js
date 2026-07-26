@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import e from 'express';
-import { createDecipheriv } from 'crypto';
+import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -411,6 +411,127 @@ app.get("/api/orders", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Fetch orders error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// PayHere Configuration (Sandbox User Credentials)
+const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID || "1235278";
+const PAYHERE_MERCHANT_SECRET = process.env.PAYHERE_MERCHANT_SECRET || "MTU0NTEwMjc4NjI4NDk2MzMyOTQxNDIyOTQwMTUzODk0MzIyMjAw";
+
+function generatePayHereHash(merchantId, orderId, amount, currency, merchantSecret) {
+  const formattedAmount = Number(amount).toFixed(2);
+  const secretHash = crypto.createHash('md5').update(merchantSecret).digest('hex').toUpperCase();
+  const hashString = merchantId + orderId + formattedAmount + currency + secretHash;
+  return crypto.createHash('md5').update(hashString).digest('hex').toUpperCase();
+}
+
+// Endpoint to generate PayHere payment parameters & MD5 security hash
+app.post("/api/payhere/generate-hash", authMiddleware, async (req, res) => {
+  try {
+    const { amount, currency = "LKR", items, shippingAddress } = req.body;
+    const orderId = "BENCHAM-" + Date.now();
+
+    const hash = generatePayHereHash(
+      PAYHERE_MERCHANT_ID,
+      orderId,
+      amount,
+      currency,
+      PAYHERE_MERCHANT_SECRET
+    );
+
+    const user = await User.findById(req.user.id);
+
+    res.json({
+      sandbox: true,
+      merchant_id: PAYHERE_MERCHANT_ID,
+      return_url: "http://localhost:3000/order-success",
+      cancel_url: "http://localhost:3000/buy",
+      notify_url: "http://localhost:3000/api/payhere/notify",
+      order_id: orderId,
+      items: items && items.length > 0 ? items.map(i => i.title).join(", ") : "Bencham Gemstone Purchase",
+      amount: Number(amount).toFixed(2),
+      currency: currency,
+      hash: hash,
+      first_name: shippingAddress?.fullName || user?.name || "Customer",
+      last_name: "Customer",
+      email: user?.email || "customer@example.com",
+      phone: shippingAddress?.phone || "0771234567",
+      address: shippingAddress?.addressLine || "Street Address",
+      city: shippingAddress?.city || "Colombo",
+      country: "Sri Lanka",
+      delivery_address: shippingAddress?.addressLine || "Street Address",
+      delivery_city: shippingAddress?.city || "Colombo",
+      delivery_country: "Sri Lanka",
+      custom_1: user?.email || "",
+      custom_2: ""
+    });
+  } catch (error) {
+    console.error("PayHere Hash Error:", error);
+    res.status(500).json({ message: "Failed to generate PayHere security token" });
+  }
+});
+
+// PayHere Server-to-Server Webhook Notification Endpoint
+app.post("/api/payhere/notify", async (req, res) => {
+  try {
+    const {
+      merchant_id,
+      order_id,
+      payment_id,
+      payhere_amount,
+      payhere_currency,
+      status_code,
+      md5sig,
+      custom_1,
+      custom_2
+    } = req.body;
+
+    const secretHash = crypto.createHash('md5').update(PAYHERE_MERCHANT_SECRET).digest('hex').toUpperCase();
+    const localHashString = merchant_id + order_id + payhere_amount + payhere_currency + status_code + secretHash;
+    const expectedHash = crypto.createHash('md5').update(localHashString).digest('hex').toUpperCase();
+
+    // Verify MD5 signature authenticity
+    if (expectedHash !== md5sig) {
+      console.warn("PayHere Webhook MD5 Mismatch!");
+      return res.status(400).send("Signature verification failed");
+    }
+
+    // status_code 2 indicates success in PayHere
+    if (status_code === "2") {
+      console.log(`✅ PayHere Payment Success! Order: ${order_id}, Payment ID: ${payment_id}`);
+
+      // Update or create Order status to Paid
+      await Order.findOneAndUpdate(
+        { orderId: order_id },
+        { status: "Paid", paymentId: payment_id },
+        { upsert: true, new: true }
+      );
+
+      // Send Email Receipt using Nodemailer if email available
+      if (custom_1) {
+        const mailOptions = {
+          from: '"Bencham Gemstones" <nimradhanethmini2002@gmail.com>',
+          to: custom_1,
+          subject: `Order Confirmation - #${order_id}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+              <h2 style="color: #ad9551;">Thank You for Your Order!</h2>
+              <p>Your payment of <strong>LKR ${payhere_amount}</strong> has been received successfully.</p>
+              <p><strong>Order ID:</strong> ${order_id}</p>
+              <p><strong>Payment ID:</strong> ${payment_id}</p>
+              <hr />
+              <p>We are preparing your certified gemstone item for delivery.</p>
+            </div>
+          `
+        };
+        transporter.sendMail(mailOptions).catch(err => console.error("Email send error:", err));
+      }
+    }
+
+    res.status(200).send("OK");
+  } catch (error) {
+    console.error("PayHere notify error:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 

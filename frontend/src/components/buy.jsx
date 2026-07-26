@@ -77,19 +77,6 @@ const Buy = () => {
       return;
     }
 
-    // 3. Validate Card Details if "card" is selected
-    if (selectedPayment === "card") {
-      if (
-        !cardDetails.cardNumber.trim() ||
-        !cardDetails.cardHolder.trim() ||
-        !cardDetails.expiry.trim() ||
-        !cardDetails.cvv.trim()
-      ) {
-        setErrorMessage("Please fill in all credit card details.");
-        return;
-      }
-    }
-
     const token = sessionStorage.getItem("token");
     if (!token) {
       setErrorMessage("Session expired. Please log in again.");
@@ -101,44 +88,74 @@ const Buy = () => {
     setIsProcessing(true);
 
     try {
-      const res = await fetch("http://localhost:3000/api/orders", {
+      // Step 1: Request PayHere MD5 security hash from backend
+      const res = await fetch("http://localhost:3000/api/payhere/generate-hash", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          items: [{
-            title: cartItem.title,
-            price: cartItem.price,
-            quantity: cartItem.quantity,
-            image: cartItem.image
-          }],
-          shippingAddress: latestAddress,
-          paymentMethod: selectedPayment,
-          cardNumber: cardDetails.cardNumber,
-          subtotal,
-          tax,
-          totalAmount: total
+          amount: total,
+          currency: "LKR",
+          items: [{ title: cartItem.title, price: cartItem.price, quantity: cartItem.quantity }],
+          shippingAddress: latestAddress
         })
       });
 
-      const data = await res.json();
-      setIsProcessing(false);
+      const paymentObject = await res.json();
 
-      if (res.ok) {
-        setOrderSuccess(true);
-        // Navigate to Order Success page after brief delay
-        setTimeout(() => {
-          navigate("/order-success", { state: { order: data.order } });
-        }, 1200);
+      if (!res.ok) {
+        setIsProcessing(false);
+        setErrorMessage(paymentObject.message || "Failed to initialize PayHere payment.");
+        return;
+      }
+
+      // Step 2: Configure PayHere SDK Event Callbacks
+      if (window.payhere) {
+        window.payhere.onCompleted = function onCompleted(orderId) {
+          console.log("PayHere Payment completed. OrderID:" + orderId);
+          setIsProcessing(false);
+          setOrderSuccess(true);
+
+          setTimeout(() => {
+            navigate("/order-success", {
+              state: {
+                order: {
+                  _id: orderId,
+                  items: [{ title: cartItem.title, price: cartItem.price, quantity: cartItem.quantity, image: cartItem.image }],
+                  shippingAddress: latestAddress,
+                  paymentMethod: "PayHere Gateway (" + selectedPayment + ")",
+                  totalAmount: total,
+                  createdAt: new Date().toISOString()
+                }
+              }
+            });
+          }, 1000);
+        };
+
+        window.payhere.onDismissed = function onDismissed() {
+          console.log("PayHere Payment modal closed");
+          setIsProcessing(false);
+        };
+
+        window.payhere.onError = function onError(error) {
+          console.error("PayHere Error:", error);
+          setIsProcessing(false);
+          setErrorMessage("PayHere Payment Error: " + error);
+        };
+
+        // Step 3: Launch PayHere Modal Popup
+        console.log("PayHere payment object:", paymentObject);
+        window.payhere.startPayment(paymentObject);
       } else {
-        setErrorMessage(data.message || "Failed to process order.");
+        setIsProcessing(false);
+        setErrorMessage("PayHere SDK failed to load. Please refresh and try again.");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Payment trigger error:", err);
       setIsProcessing(false);
-      setErrorMessage("Network error. Please try again.");
+      setErrorMessage("Network error connecting to payment gateway. Please try again.");
     }
   };
 
