@@ -207,11 +207,11 @@ const Header = () => {
 
                                     {/* Menu items */}
                                     {[
-                                        { icon: "/images/smile.png",          label: "Manage My Account",          route: "/manageAccount" },
-                                        { icon: "/images/orders.png",         label: "My Orders",                  route: null },
-                                        { icon: "/images/heart.png",          label: "My Wishlist & Followed Stores", route: null },
-                                        { icon: "/images/recommendation.png", label: "My Reviews",                 route: null },
-                                        { icon: "/images/return.png",         label: "My Returns & Cancellations", route: null },
+                                        { icon: "/images/smile.png",          label: "Manage My Account",          section: "profile" },
+                                        { icon: "/images/orders.png",         label: "My Orders",                  section: "orders" },
+                                        { icon: "/images/heart.png",          label: "My Wishlist & Followed Stores", section: "wishlist" },
+                                        { icon: "/images/recommendation.png", label: "My Reviews",                 section: "reviews" },
+                                        { icon: "/images/return.png",         label: "My Returns & Cancellations", section: "returns" },
                                     ].map((item) => (
                                         <div
                                             key={item.label}
@@ -231,7 +231,10 @@ const Header = () => {
                                             }}
                                             onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
                                             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                                            onClick={() => { if (item.route) { setShowDropdown(false); navigate(item.route); } }}
+                                            onClick={() => {
+                                                setShowDropdown(false);
+                                                navigate("/manageAccount", { state: { section: item.section } });
+                                            }}
                                         >
                                             <span style={{
                                                 width: "34px",

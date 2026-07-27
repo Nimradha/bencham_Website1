@@ -1,16 +1,27 @@
-import { FaCreditCard, FaGooglePay, FaPaypal, FaCcVisa, FaInfoCircle } from "react-icons/fa";
-import React, { useState, useEffect } from "react";
+import { FaCreditCard, FaMoneyBillWave } from "react-icons/fa";
+import React, { useState, useEffect, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AddressFormModal from "./AddressFormModal";
+import { CartContext } from "./CartContext";
 
 const Buy = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const product = location.state;
-  const [cartItem, setCartItem] = useState(product);
+  const { clearCart, removeSelectedItems } = useContext(CartContext);
+
+  const rawState = location.state;
+  const initialItems = React.useMemo(() => {
+    if (!rawState) return [];
+    if (rawState.items && Array.isArray(rawState.items)) {
+      return rawState.items;
+    }
+    return [rawState];
+  }, [rawState]);
+
+  const [itemsList, setItemsList] = useState(initialItems);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [addresses, setAddresses] = useState([]);
-  
+
   // Payment states
   const [selectedPayment, setSelectedPayment] = useState("card");
   const [cardDetails, setCardDetails] = useState({
@@ -23,7 +34,7 @@ const Buy = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
 
-  const subtotal = cartItem ? cartItem.price * cartItem.quantity : 0;
+  const subtotal = itemsList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.1;
   const total = subtotal + tax;
 
@@ -65,13 +76,16 @@ const Buy = () => {
   const handlePlaceOrder = async () => {
     setErrorMessage("");
 
-    // 1. Validate Shipping Address
+    if (!itemsList || itemsList.length === 0) {
+      setErrorMessage("No products selected for checkout.");
+      return;
+    }
+
     if (!addresses || addresses.length === 0) {
       setErrorMessage("Please add a shipping address before placing your order.");
       return;
     }
 
-    // 2. Validate Payment Method selection
     if (!selectedPayment) {
       setErrorMessage("Please select a payment method.");
       return;
@@ -84,11 +98,58 @@ const Buy = () => {
     }
 
     const latestAddress = addresses[addresses.length - 1];
-
     setIsProcessing(true);
 
+    // ── Handle Cash on Delivery (COD) ─────────────────────────────────────────
+    if (selectedPayment === "cod") {
+      const orderPayload = {
+        items: itemsList.map(i => ({ title: i.title, price: i.price, quantity: i.quantity, image: i.image })),
+        shippingAddress: latestAddress,
+        paymentMethod: "Cash on Delivery (COD)",
+        subtotal,
+        tax,
+        totalAmount: total,
+        status: "Pending (COD)"
+      };
+
+      try {
+        const res = await fetch("http://localhost:3000/api/orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(orderPayload)
+        });
+
+        const data = await res.json();
+        setIsProcessing(false);
+
+        if (res.ok) {
+          setOrderSuccess(true);
+
+          if (rawState?.fromCart && rawState?.selectedIds) {
+            removeSelectedItems(rawState.selectedIds);
+          } else if (clearCart) {
+            clearCart();
+          }
+
+          setTimeout(() => {
+            navigate("/order-success", { state: { order: data.order || orderPayload } });
+          }, 1000);
+        } else {
+          setErrorMessage(data.message || "Failed to place Cash on Delivery order.");
+        }
+      } catch (err) {
+        console.error("COD order error:", err);
+        setIsProcessing(false);
+        setErrorMessage("Network error placing COD order. Please try again.");
+      }
+      return;
+    }
+
+    // ── Handle Online Payment via PayHere Gateway ──────────────────────────────
     try {
-      // Step 1: Request PayHere MD5 security hash from backend
       const res = await fetch("http://localhost:3000/api/payhere/generate-hash", {
         method: "POST",
         headers: {
@@ -98,7 +159,7 @@ const Buy = () => {
         body: JSON.stringify({
           amount: total,
           currency: "LKR",
-          items: [{ title: cartItem.title, price: cartItem.price, quantity: cartItem.quantity }],
+          items: itemsList.map(i => ({ title: i.title, price: i.price, quantity: i.quantity, image: i.image })),
           shippingAddress: latestAddress
         })
       });
@@ -111,26 +172,53 @@ const Buy = () => {
         return;
       }
 
-      // Step 2: Configure PayHere SDK Event Callbacks
       if (window.payhere) {
-        window.payhere.onCompleted = function onCompleted(orderId) {
+        window.payhere.onCompleted = async function onCompleted(orderId) {
           console.log("PayHere Payment completed. OrderID:" + orderId);
           setIsProcessing(false);
           setOrderSuccess(true);
 
-          setTimeout(() => {
-            navigate("/order-success", {
-              state: {
-                order: {
-                  _id: orderId,
-                  items: [{ title: cartItem.title, price: cartItem.price, quantity: cartItem.quantity, image: cartItem.image }],
-                  shippingAddress: latestAddress,
-                  paymentMethod: "PayHere Gateway (" + selectedPayment + ")",
-                  totalAmount: total,
-                  createdAt: new Date().toISOString()
-                }
-              }
+          const orderPayload = {
+            items: itemsList.map(i => ({ title: i.title, price: i.price, quantity: i.quantity, image: i.image })),
+            shippingAddress: latestAddress,
+            paymentMethod: "PayHere Online Gateway",
+            subtotal,
+            tax,
+            totalAmount: total,
+            status: "Paid"
+          };
+
+          let savedOrder = {
+            _id: orderId,
+            ...orderPayload,
+            createdAt: new Date().toISOString()
+          };
+
+          try {
+            const saveRes = await fetch("http://localhost:3000/api/orders", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+              },
+              body: JSON.stringify(orderPayload)
             });
+            const saveResult = await saveRes.json();
+            if (saveRes.ok && saveResult.order) {
+              savedOrder = saveResult.order;
+            }
+          } catch (err) {
+            console.error("Local order save failed:", err);
+          }
+
+          if (rawState?.fromCart && rawState?.selectedIds) {
+            removeSelectedItems(rawState.selectedIds);
+          } else if (clearCart) {
+            clearCart();
+          }
+
+          setTimeout(() => {
+            navigate("/order-success", { state: { order: savedOrder } });
           }, 1000);
         };
 
@@ -145,7 +233,6 @@ const Buy = () => {
           setErrorMessage("PayHere Payment Error: " + error);
         };
 
-        // Step 3: Launch PayHere Modal Popup
         console.log("PayHere payment object:", paymentObject);
         window.payhere.startPayment(paymentObject);
       } else {
@@ -159,8 +246,8 @@ const Buy = () => {
     }
   };
 
-  if (!cartItem) {
-    return <h2 style={{ textAlign: "center", color: "white", marginTop: "50px" }}>No product selected</h2>;
+  if (!itemsList || itemsList.length === 0) {
+    return <h2 style={{ textAlign: "center", color: "white", marginTop: "50px" }}>No products selected</h2>;
   }
 
   return (
@@ -241,7 +328,7 @@ const Buy = () => {
         <div className="card">
           <h3 style={{ color: "white", fontFamily: "'Montserrat', sans-serif" }}>Payment Methods</h3>
 
-          {/* Credit/Debit Card Option */}
+          {/* Online Payment via PayHere Option */}
           <div className="payment-option-container">
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <input
@@ -262,161 +349,79 @@ const Buy = () => {
               </div>
             </div>
 
-            {/* Dynamic Card Form */}
-            {selectedPayment === "card" && (
-              <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "16px", paddingLeft: "10px", paddingRight: "10px" }}>
-                {/* Card Number Field */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  <label style={{ fontSize: "14px", color: "#b9c7de", fontFamily: "'Montserrat', sans-serif" }}>
-                    <span style={{ color: "#ff4d4d", marginRight: "4px" }}>*</span>Card number
-                  </label>
-                  <input
-                    type="text"
-                    name="cardNumber"
-                    placeholder="Card number"
-                    maxLength={19}
-                    className="card-input-field"
-                    value={cardDetails.cardNumber}
-                    onChange={handleCardChange}
-                  />
-                </div>
+            {/* Dynamic PayHere Notice */}
 
-                {/* Name on Card Field */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  <label style={{ fontSize: "14px", color: "#b9c7de", fontFamily: "'Montserrat', sans-serif" }}>
-                    <span style={{ color: "#ff4d4d", marginRight: "4px" }}>*</span>Name on card
-                  </label>
-                  <input
-                    type="text"
-                    name="cardHolder"
-                    placeholder="Name on card"
-                    className="card-input-field"
-                    value={cardDetails.cardHolder}
-                    onChange={handleCardChange}
-                  />
-                </div>
+          </div>
 
-                {/* Expiry Date & CVV Row */}
-                <div style={{ display: "flex", gap: "16px" }}>
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <label style={{ fontSize: "14px", color: "#b9c7de", fontFamily: "'Montserrat', sans-serif" }}>
-                      <span style={{ color: "#ff4d4d", marginRight: "4px" }}>*</span>Expiry date
-                    </label>
-                    <input
-                      type="text"
-                      name="expiry"
-                      placeholder="MM/YY"
-                      maxLength={5}
-                      className="card-input-field"
-                      value={cardDetails.expiry}
-                      onChange={handleCardChange}
-                    />
-                  </div>
+          {/* Cash on Delivery Option */}
+          <div className="payment-option-container" style={{ marginTop: "10px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <input
+                type="radio"
+                id="payment-cod"
+                name="payment"
+                value="cod"
+                checked={selectedPayment === "cod"}
+                onChange={(e) => setSelectedPayment(e.target.value)}
+              />
+              <label htmlFor="payment-cod" style={{ display: "flex", alignItems: "center", cursor: "pointer", color: "#b9c7de" }}>
+                <FaMoneyBillWave style={{ marginRight: "8px", color: "#4cd137", fontSize: "18px" }} />
+                <span>Cash on Delivery (COD)</span>
+              </label>
+            </div>
 
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <label style={{ fontSize: "14px", color: "#b9c7de", fontFamily: "'Montserrat', sans-serif", display: "flex", alignItems: "center", gap: "5px" }}>
-                      <span><span style={{ color: "#ff4d4d", marginRight: "4px" }}>*</span>CVV</span>
-                      <FaInfoCircle style={{ color: "#319795", fontSize: "13px", cursor: "pointer" }} title="3 or 4 digit code on the back of your card" />
-                    </label>
-                    <input
-                      type="password"
-                      name="cvv"
-                      placeholder="CVV"
-                      maxLength={4}
-                      className="card-input-field"
-                      value={cardDetails.cvv}
-                      onChange={handleCardChange}
-                    />
-                  </div>
-                </div>
-
-                {/* Card Save Disclaimer */}
-                <p style={{ fontSize: "12px", color: "#8a99b5", lineHeight: "1.5", margin: "5px 0 5px 0" }}>
-                  We will save this card for your convenience. If required, you can remove the card in the "Payment Options" section in the "Account" menu.
-                </p>
+            {/* Dynamic COD Notice */}
+            {selectedPayment === "cod" && (
+              <div style={{ marginTop: "12px", padding: "10px 14px", backgroundColor: "rgba(76, 209, 55, 0.1)", border: "1px solid rgba(76, 209, 55, 0.3)", borderRadius: "6px", fontSize: "13px", color: "#b9c7de" }}>
+                💵 <strong>Cash on Delivery:</strong> Pay with cash upon delivery of your package to your shipping address.
               </div>
             )}
-          </div>
-
-          {/* Google Pay Option */}
-          <div className="payment-option-container" style={{ marginTop: "10px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <input
-                type="radio"
-                id="payment-gpay"
-                name="payment"
-                value="googlepay"
-                checked={selectedPayment === "googlepay"}
-                onChange={(e) => setSelectedPayment(e.target.value)}
-              />
-              <label htmlFor="payment-gpay" style={{ display: "flex", alignItems: "center", cursor: "pointer", color: "#b9c7de" }}>
-                <img src="/images/google-pay-primary-logo-logo-svgrepo-com.svg" alt="Google Pay" style={{ marginRight: "8px", height: "26px" }} />
-                <span>Google Pay</span>
-              </label>
-            </div>
-          </div>
-
-          {/* PayPal Option */}
-          <div className="payment-option-container" style={{ marginTop: "10px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <input
-                type="radio"
-                id="payment-paypal"
-                name="payment"
-                value="paypal"
-                checked={selectedPayment === "paypal"}
-                onChange={(e) => setSelectedPayment(e.target.value)}
-              />
-              <label htmlFor="payment-paypal" style={{ display: "flex", alignItems: "center", cursor: "pointer", color: "#b9c7de" }}>
-                <FaPaypal style={{ marginRight: "8px", color: "#0070ba", fontSize: "20px" }} />
-                <span>PayPal</span>
-              </label>
-            </div>
           </div>
         </div>
 
         {/* Selected Product Summary */}
-        <div className="card">
-          <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
-            <img
-              src={cartItem.image}
-              alt="cart item"
-              style={{ width: "80px", borderRadius: "10px", objectFit: "cover" }}
-            />
+        <div className="card" style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+          <h3 style={{ color: "white", fontFamily: "'Montserrat', sans-serif", margin: 0 }}>Selected Products ({itemsList.length})</h3>
+          {itemsList.map((item, idx) => (
+            <div key={item.id || idx} style={{ display: "flex", gap: "15px", alignItems: "center", borderBottom: idx < itemsList.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none", paddingBottom: idx < itemsList.length - 1 ? "15px" : "0" }}>
+              <img
+                src={item.image}
+                alt={item.title}
+                style={{ width: "70px", height: "70px", borderRadius: "10px", objectFit: "cover" }}
+              />
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <h4 style={{ margin: 0, color: "#b9c7de", fontFamily: "'Montserrat', sans-serif" }}>{cartItem.title}</h4>
-              <h3 style={{ margin: 0, color: "#798598" }}>LKR {(cartItem.price * cartItem.quantity).toFixed(2)}</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
+                <h4 style={{ margin: 0, color: "#b9c7de", fontFamily: "'Montserrat', sans-serif", fontSize: "15px" }}>{item.title}</h4>
+                <h3 style={{ margin: 0, color: "#798598", fontSize: "14px" }}>LKR {(item.price * item.quantity).toFixed(2)}</h3>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "5px" }}>
-                <button
-                  onClick={() =>
-                    setCartItem({
-                      ...cartItem,
-                      quantity: cartItem.quantity > 1 ? cartItem.quantity - 1 : 1
-                    })
-                  }
-                  style={{ width: "30px", height: "30px", backgroundColor: "#ad9551", borderRadius: "6px", border: "none", color: "white", fontWeight: "bold", cursor: "pointer" }}
-                >
-                  -
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "4px" }}>
+                  <button
+                    onClick={() =>
+                      setItemsList(itemsList.map(i =>
+                        i.id === item.id ? { ...i, quantity: i.quantity > 1 ? i.quantity - 1 : 1 } : i
+                      ))
+                    }
+                    style={{ width: "26px", height: "26px", backgroundColor: "#ad9551", borderRadius: "4px", border: "none", color: "white", fontWeight: "bold", cursor: "pointer" }}
+                  >
+                    -
+                  </button>
 
-                <span style={{ color: "white", fontWeight: "bold" }}>{cartItem.quantity}</span>
+                  <span style={{ color: "white", fontWeight: "bold", fontSize: "14px" }}>{item.quantity}</span>
 
-                <button
-                  onClick={() =>
-                    setCartItem({
-                      ...cartItem,
-                      quantity: cartItem.quantity + 1
-                    })
-                  }
-                  style={{ width: "30px", height: "30px", backgroundColor: "#ad9551", borderRadius: "6px", border: "none", color: "white", fontWeight: "bold", cursor: "pointer" }}
-                >
-                  +
-                </button>
+                  <button
+                    onClick={() =>
+                      setItemsList(itemsList.map(i =>
+                        i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+                      ))
+                    }
+                    style={{ width: "26px", height: "26px", backgroundColor: "#ad9551", borderRadius: "4px", border: "none", color: "white", fontWeight: "bold", cursor: "pointer" }}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
 

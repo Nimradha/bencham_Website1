@@ -24,19 +24,23 @@ const Cart = () => {
 }, []);
 
   const handleCheckout = () => {
-  
-   const selectedProducts = cartItems.filter(item =>
-    selectedItems.includes(item.id)
-   );
+    const selectedProducts = cartItems.filter(item =>
+      selectedItems.includes(item.id)
+    );
 
-   if (selectedProducts.length === 0) {
-    alert("Please select at least one item");
-    return;
-   }
+    if (selectedProducts.length === 0) {
+      alert("Please select at least one item");
+      return;
+    }
 
-  
-  navigate("/buy", { state: selectedProducts[0]});
-};
+    navigate("/buy", {
+      state: {
+        items: selectedProducts,
+        selectedIds: selectedItems,
+        fromCart: true
+      }
+    });
+  };
 
 
   const subtotal = cartItems
@@ -123,7 +127,7 @@ const Cart = () => {
         </div>
 
         <button className="proceed" onClick={handleCheckout} style={{color:"black",borderRadius:"5px"}}>
-          PROCEED TO CHECKOUT ({cartItems.length})
+          PROCEED TO CHECKOUT ({selectedItems.length})
         </button>
       </div>
 

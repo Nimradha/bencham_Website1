@@ -87,6 +87,12 @@ export const CartProvider = ({ children }) => {
     ));
   };
 
+  // Remove selected items from current user's cart
+  const removeSelectedItems = (idsToRemove) => {
+    if (!idsToRemove || idsToRemove.length === 0) return;
+    setCartItems(prev => prev.filter(item => !idsToRemove.includes(item.id)));
+  };
+
   // Clear only the current user's cart
   const clearCart = () => {
     setCartItems([]);
@@ -94,7 +100,7 @@ export const CartProvider = ({ children }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, increaseQty, decreaseQty, clearCart }}>
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, increaseQty, decreaseQty, clearCart, removeSelectedItems }}>
       {children}
     </CartContext.Provider>
   );

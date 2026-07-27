@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AddressFormModal from "./AddressFormModal";
 
 const ManageAccount = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const userEmail = sessionStorage.getItem("userEmail") || "";
 
   // Derive first name from email
@@ -20,10 +21,22 @@ const ManageAccount = () => {
     return `${visible}${stars}@${domain}`;
   };
 
-  const [activeSection, setActiveSection] = useState("profile");
+  const [activeSection, setActiveSection] = useState(location.state?.section || "profile");
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [editingAddress, setEditingAddress] = useState(null);
+
+  // Orders state
+  const [userOrders, setUserOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [orderTab, setOrderTab] = useState("all");
+  const [orderSearchQuery, setOrderSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (location.state?.section) {
+      setActiveSection(location.state.section);
+    }
+  }, [location.state]);
 
   // Fetch saved addresses on load
   useEffect(() => {
@@ -43,6 +56,27 @@ const ManageAccount = () => {
     fetchAddresses();
   }, []);
 
+  // Fetch user orders on load
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        if (!token) return;
+        setLoadingOrders(true);
+        const res = await fetch("http://localhost:3000/api/orders", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) setUserOrders(data);
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+    fetchOrders();
+  }, []);
+
   // ── Sidebar items ──────────────────────────────────────────────────────────
   const sidebarSections = [
     {
@@ -57,6 +91,7 @@ const ManageAccount = () => {
     {
       heading: "My Orders",
       items: [
+        { key: "orders",        label: "My Orders" },
         { key: "returns",       label: "My Returns" },
         { key: "cancellations", label: "My Cancellations" },
       ],
@@ -493,6 +528,217 @@ const ManageAccount = () => {
                   setEditingAddress(null);
                 }}
               />
+            )}
+          </>
+        )}
+
+        {/* My Orders section */}
+        {activeSection === "orders" && (
+          <>
+            <h2 style={mainTitle}>My Orders</h2>
+            {loadingOrders ? (
+              <div style={{ color: "rgba(255,255,255,0.6)", padding: "20px" }}>Loading your orders...</div>
+            ) : userOrders.length === 0 ? (
+              <div style={{
+                backgroundColor: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(173,149,81,0.25)",
+                borderRadius: "8px",
+                padding: "40px",
+                textAlign: "center",
+                color: "rgba(255,255,255,0.5)",
+                fontSize: "14px",
+                marginTop: "15px"
+              }}>
+                📦 You have no past orders yet.<br />
+                <button
+                  onClick={() => navigate("/product")}
+                  style={{
+                    marginTop: "15px",
+                    padding: "10px 20px",
+                    backgroundColor: "#d4be82",
+                    color: "black",
+                    fontWeight: "600",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Explore Gemstone Collection
+                </button>
+              </div>
+            ) : (
+              (() => {
+                const filteredOrders = userOrders.filter((ord) => {
+                  const search = orderSearchQuery.trim().toLowerCase();
+                  const matchesSearch =
+                    !search ||
+                    (ord._id && ord._id.toLowerCase().includes(search)) ||
+                    (ord.items && ord.items.some(i => i.title && i.title.toLowerCase().includes(search)));
+
+                  if (!matchesSearch) return false;
+
+                  const status = (ord.status || "").toLowerCase();
+                  if (orderTab === "toPay") return status.includes("pending") || status.includes("cod");
+                  if (orderTab === "toShip") return status.includes("paid") || status.includes("processing") || status.includes("ship");
+                  if (orderTab === "toReceive") return status.includes("dispatched") || status.includes("transit") || status.includes("receive");
+                  if (orderTab === "toReview") return status.includes("delivered") || status.includes("completed") || status.includes("review");
+                  return true;
+                });
+
+                return (
+                  <>
+                    {/* Status Filter Tabs (Image 2 Daraz style) */}
+                    <div style={{ display: "flex", gap: "25px", borderBottom: "1px solid rgba(255,255,255,0.15)", marginBottom: "20px", paddingBottom: "2px" }}>
+                      {[
+                        { id: "all", label: "All" },
+                        { id: "toPay", label: "To Pay" },
+                        { id: "toShip", label: "To Ship" },
+                        { id: "toReceive", label: "To Receive" },
+                        { id: "toReview", label: "To Review" },
+                      ].map((tab) => {
+                        const count = userOrders.filter((ord) => {
+                          const status = (ord.status || "").toLowerCase();
+                          if (tab.id === "toPay") return status.includes("pending") || status.includes("cod");
+                          if (tab.id === "toShip") return status.includes("paid") || status.includes("processing") || status.includes("ship");
+                          if (tab.id === "toReceive") return status.includes("dispatched") || status.includes("transit") || status.includes("receive");
+                          if (tab.id === "toReview") return status.includes("delivered") || status.includes("completed") || status.includes("review");
+                          return true;
+                        }).length;
+
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => setOrderTab(tab.id)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              borderBottom: orderTab === tab.id ? "3px solid #ad9551" : "3px solid transparent",
+                              color: orderTab === tab.id ? "#ad9551" : "#b9c7de",
+                              fontSize: "15px",
+                              fontWeight: orderTab === tab.id ? "600" : "400",
+                              padding: "8px 4px",
+                              cursor: "pointer",
+                              transition: "all 0.2s ease"
+                            }}
+                          >
+                            {tab.label} {tab.id !== "all" && count > 0 ? `(${count})` : ""}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Search Bar (Image 2 style) */}
+                    <div style={{ position: "relative", marginBottom: "20px" }}>
+                      <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#ad9551" }}>🔍</span>
+                      <input
+                        type="text"
+                        placeholder="Search by order ID or product name..."
+                        value={orderSearchQuery}
+                        onChange={(e) => setOrderSearchQuery(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "10px 14px 10px 40px",
+                          borderRadius: "6px",
+                          border: "1px solid rgba(173, 149, 81, 0.4)",
+                          backgroundColor: "rgba(255,255,255,0.05)",
+                          color: "white",
+                          fontSize: "14px",
+                          outline: "none"
+                        }}
+                      />
+                    </div>
+
+                    {/* Orders Cards List */}
+                    {filteredOrders.length > 0 ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                        {filteredOrders.map((ord, idx) => (
+                          <div
+                            key={ord._id || idx}
+                            style={{
+                              backgroundColor: "rgba(255,255,255,0.04)",
+                              border: "1px solid rgba(173,149,81,0.3)",
+                              borderRadius: "8px",
+                              padding: "20px",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "15px"
+                            }}
+                          >
+                            {/* Store banner & status */}
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "12px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                <span style={{ fontSize: "14px", fontWeight: "600", color: "#d4be82" }}>
+                                  🛍️ Bencham Collection
+                                </span>
+                                <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                                  • #{ord._id ? ord._id.slice(-8).toUpperCase() : `ORD-${idx + 1}`} ({new Date(ord.createdAt || Date.now()).toLocaleDateString()})
+                                </span>
+                              </div>
+                              {ord.status && (ord.status.includes("Pending") || ord.status.includes("COD")) ? (
+                                <span style={{
+                                  backgroundColor: "rgba(243, 156, 18, 0.2)",
+                                  color: "#f39c12",
+                                  border: "1px solid #f39c12",
+                                  fontSize: "12px",
+                                  fontWeight: "600",
+                                  padding: "3px 10px",
+                                  borderRadius: "12px"
+                                }}>
+                                  ⏳ {ord.status}
+                                </span>
+                              ) : (
+                                <span style={{
+                                  backgroundColor: "rgba(40, 167, 69, 0.2)",
+                                  color: "#4cd137",
+                                  border: "1px solid #28a745",
+                                  fontSize: "12px",
+                                  fontWeight: "600",
+                                  padding: "3px 10px",
+                                  borderRadius: "12px"
+                                }}>
+                                  ✓ {ord.status || "Paid"}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Items list */}
+                            {ord.items && ord.items.map((item, i) => (
+                              <div key={i} style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                                {item.image && (
+                                  <img src={item.image} alt={item.title} style={{ width: "65px", height: "65px", borderRadius: "8px", objectFit: "cover" }} />
+                                )}
+                                <div style={{ flex: 1 }}>
+                                  <h4 style={{ margin: "0 0 4px 0", fontSize: "14px", color: "white" }}>{item.title}</h4>
+                                  <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Quantity: {item.quantity}</p>
+                                </div>
+                                <div style={{ fontSize: "14px", fontWeight: "600", color: "#d4be82" }}>
+                                  LKR {(item.price * item.quantity).toFixed(2)}
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Footer row: Shipping address & Total */}
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "12px", marginTop: "5px" }}>
+                              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)" }}>
+                                {ord.shippingAddress && (
+                                  <span>Shipping to: <strong>{ord.shippingAddress.fullName}</strong> ({ord.shippingAddress.city})</span>
+                                )}
+                              </div>
+                              <div style={{ fontSize: "16px", fontWeight: "bold", color: "white" }}>
+                                Total: <span style={{ color: "#4cd137" }}>LKR {ord.totalAmount ? Number(ord.totalAmount).toFixed(2) : "0.00"}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: "center", color: "rgba(255,255,255,0.6)", padding: "40px 0" }}>
+                        No orders found in this section.
+                      </div>
+                    )}
+                  </>
+                );
+              })()
             )}
           </>
         )}

@@ -47,10 +47,12 @@ const OrderSuccess = () => {
     }}>
       {/* Header */}
       <div style={{ textAlign: "center", paddingBottom: "25px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <FaCheckCircle style={{ fontSize: "60px", color: "#4cd137", marginBottom: "15px" }} />
-        <h1 style={{ margin: "0 0 10px 0", color: "#cdaf5b", fontSize: "28px" }}>Payment Successful!</h1>
+        <FaCheckCircle style={{ fontSize: "60px", color: order?.status?.includes("Pending") ? "#f39c12" : "#4cd137", marginBottom: "15px" }} />
+        <h1 style={{ margin: "0 0 10px 0", color: "#cdaf5b", fontSize: "28px" }}>
+          {order?.status?.includes("Pending") ? "Order Placed Successfully!" : "Payment Successful!"}
+        </h1>
         <p style={{ color: "#b9c7de", fontSize: "16px", margin: 0 }}>
-          Thank you for your purchase. Your order has been placed successfully.
+          {order?.status?.includes("Pending") ? "Your Cash on Delivery order has been registered." : "Thank you for your purchase. Your order has been placed successfully."}
         </p>
         <span style={{
           display: "inline-block",
@@ -104,7 +106,11 @@ const OrderSuccess = () => {
               <strong>Method:</strong> {paymentMethod === "card" ? `Credit Card (ending in ${cardLast4 || "****"})` : paymentMethod}
             </p>
             <p style={{ margin: "4px 0" }}>
-              <strong>Status:</strong> <span style={{ color: "#4cd137", fontWeight: "bold" }}>Paid</span>
+              <strong>Status:</strong> {order?.status?.includes("Pending") ? (
+                <span style={{ color: "#f39c12", fontWeight: "bold" }}>Pending (Cash on Delivery)</span>
+              ) : (
+                <span style={{ color: "#4cd137", fontWeight: "bold" }}>Paid</span>
+              )}
             </p>
             <p style={{ margin: "4px 0" }}>
               <strong>Date:</strong> {new Date(createdAt || Date.now()).toLocaleDateString()}

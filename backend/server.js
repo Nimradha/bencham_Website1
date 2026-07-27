@@ -378,7 +378,7 @@ app.put("/api/address/:id", authMiddleware, async (req, res) => {
 // Create a new order
 app.post("/api/orders", authMiddleware, async (req, res) => {
   try {
-    const { items, shippingAddress, paymentMethod, cardNumber, subtotal, tax, totalAmount } = req.body;
+    const { items, shippingAddress, paymentMethod, cardNumber, subtotal, tax, totalAmount, status } = req.body;
 
     const cardLast4 = cardNumber ? cardNumber.slice(-4) : "";
 
@@ -391,7 +391,7 @@ app.post("/api/orders", authMiddleware, async (req, res) => {
       subtotal,
       tax,
       totalAmount,
-      status: "Paid"
+      status: status || "Paid"
     });
 
     await newOrder.save();
