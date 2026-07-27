@@ -103,15 +103,22 @@ const authMiddleware = (req, res, next) => {
 
 
 
+// ── Email Transporter (Brevo SMTP) ───────────────────────────────────────────
+// Sign up free at https://www.brevo.com → Settings → SMTP & API → copy credentials below
+const BREVO_SMTP_LOGIN = 'b37923001@smtp-brevo.com';
+const BREVO_SMTP_KEY   = 'xsmtpsib-c502ec3a700482a107197047774e55391f98e3c8e581fbd80390c87889eddd23-K8PJM4DmZhwDS9LT';
+const STORE_EMAIL      = 'nimradhanethmini2002@gmail.com';
+
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp-relay.brevo.com',
+  port: 587,
+  secure: false,
   auth: {
-    user: 'nimradhanethmini2002@gmail.com',        
-    pass: 'xhxm swpk uohd samg',          
+    user: BREVO_SMTP_LOGIN,
+    pass: BREVO_SMTP_KEY,
   },
-  logger: true,
-  debug: true,
 });
+
 
 
 app.post('/api/contact', async (req, res) => {
@@ -173,7 +180,7 @@ app.post("/api/google-login", async (req, res) => {
     }
 
     // Issue an app JWT
-    const token = jwt.sign({ id: user._id }, "your_jwt_secret", { expiresIn: "7d" });
+    const token = jwt.sign({ id: user._id, email: user.email }, "your_jwt_secret", { expiresIn: "7d" });
     res.json({ token, name: user.name, email: user.email });
 
   } catch (error) {
@@ -196,7 +203,7 @@ app.post("/api/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: user._id }, "your_jwt_secret", {
+    const token = jwt.sign({ id: user._id, email: user.email }, "your_jwt_secret", {
       expiresIn: "7d",
     });
 
@@ -375,6 +382,118 @@ app.put("/api/address/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// Helper to send order confirmation email via Nodemailer
+const sendOrderConfirmationEmail = async (order, recipientEmail) => {
+  if (!recipientEmail) return;
+
+  const isCOD = order.status && (order.status.includes("Pending") || order.status.includes("COD"));
+  const orderIdFormatted = order._id ? order._id.toString().slice(-8).toUpperCase() : "ORD-NEW";
+
+  const subject = isCOD
+    ? `Order Received: Bencham Jewellers #${orderIdFormatted}`
+    : `Order Confirmation: Bencham Jewellers #${orderIdFormatted}`;
+
+  const statusBanner = isCOD
+    ? `Your Cash on Delivery order #${orderIdFormatted} has been received and is awaiting dispatch.`
+    : `Thank you for your payment! Your order #${orderIdFormatted} has been confirmed and is being prepared for dispatch.`;
+
+  const statusBadgeColor = isCOD ? "#f39c12" : "#28a745";
+  const statusBadgeText = isCOD ? "Pending (Cash on Delivery)" : "Paid (Online Gateway)";
+
+  const itemsHtml = (order.items || []).map(item => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">
+        <strong>${item.title}</strong>
+      </td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">
+        ${item.quantity}
+      </td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
+        LKR ${(item.price * item.quantity).toFixed(2)}
+      </td>
+    </tr>
+  `).join('');
+
+  const addressHtml = order.shippingAddress
+    ? `${order.shippingAddress.fullName}<br/>
+       ${order.shippingAddress.addressLine}<br/>
+       ${order.shippingAddress.city}, ${order.shippingAddress.district}, ${order.shippingAddress.province}<br/>
+       Phone: ${order.shippingAddress.phone}`
+    : "No shipping address provided";
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; background-color: #f7f7f7; padding: 20px; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+        <div style="background-color: #27001a; color: #d4be82; text-align: center; padding: 25px 20px;">
+          <h1 style="margin: 0; font-size: 24px; letter-spacing: 1px;">BENCHAM JEWELLERS</h1>
+          <p style="margin: 5px 0 0 0; font-size: 12px; color: #ffffff; opacity: 0.8;">Where Elegance Meets Sparkle</p>
+        </div>
+
+        <div style="padding: 25px;">
+          <h2 style="color: #27001a; font-size: 18px; margin-top: 0;">Order Status Update</h2>
+          <p style="font-size: 15px; line-height: 1.5; color: #444;">
+            ${statusBanner}
+          </p>
+
+          <div style="margin: 20px 0; padding: 12px 15px; background: #fdfaf3; border-left: 4px solid ${statusBadgeColor};">
+            <strong>Payment Status:</strong> <span style="color: ${statusBadgeColor}; font-weight: bold;">${statusBadgeText}</span>
+          </div>
+
+          <h3 style="border-bottom: 2px solid #27001a; padding-bottom: 5px; color: #27001a; font-size: 16px;">Order Summary</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+            <thead>
+              <tr style="background-color: #f2f2f2;">
+                <th style="padding: 8px; text-align: left;">Item</th>
+                <th style="padding: 8px; text-align: center;">Qty</th>
+                <th style="padding: 8px; text-align: right;">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+
+          <div style="display: flex; justify-content: space-between; border-top: 2px solid #eee; padding-top: 10px; font-size: 16px;">
+            <strong>Total Amount:</strong>
+            <strong style="color: #27001a;">LKR ${Number(order.totalAmount || 0).toFixed(2)}</strong>
+          </div>
+
+          <h3 style="border-bottom: 2px solid #27001a; padding-bottom: 5px; color: #27001a; font-size: 16px; margin-top: 25px;">Shipping Address</h3>
+          <p style="font-size: 14px; line-height: 1.5; color: #555;">
+            ${addressHtml}
+          </p>
+
+          ${isCOD ? `
+            <div style="margin-top: 20px; padding: 12px; background: #fff3cd; color: #856404; border-radius: 4px; font-size: 13px;">
+              📌 <strong>COD Note:</strong> Please prepare exact cash (LKR ${Number(order.totalAmount || 0).toFixed(2)}) upon delivery.
+            </div>
+          ` : ''}
+
+          <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 15px;">
+            Thank you for shopping with Bencham Jewellers.<br/>
+            If you have any questions, feel free to contact us at support@benchamjewellers.com
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const mailOptions = {
+    from: '"Bencham Jewellers" <nimradhanethmini2002@gmail.com>',
+    to: recipientEmail,
+    bcc: STORE_EMAIL,
+    subject: subject,
+    html: htmlContent
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Order confirmation email sent to ${recipientEmail}`);
+  } catch (err) {
+    console.error("Order email error:", err);
+  }
+};
+
 // Create a new order
 app.post("/api/orders", authMiddleware, async (req, res) => {
   try {
@@ -395,6 +514,22 @@ app.post("/api/orders", authMiddleware, async (req, res) => {
     });
 
     await newOrder.save();
+
+    // Fetch user email to send receipt email
+    try {
+      let recipientEmail = req.user?.email;
+      if (!recipientEmail && req.user?.id) {
+        const user = await User.findById(req.user.id);
+        recipientEmail = user?.email;
+      }
+      console.log(`Sending order confirmation email directly to customer (${recipientEmail})...`);
+      if (recipientEmail) {
+        sendOrderConfirmationEmail(newOrder, recipientEmail);
+      }
+    } catch (e) {
+      console.error("Email fetch error:", e);
+    }
+
     res.status(201).json({ message: "Order placed successfully!", order: newOrder });
 
   } catch (error) {
