@@ -216,6 +216,18 @@ app.post("/api/login", async (req, res) => {
 
 
 
+// Token validation endpoint — used by frontend to check if stored session is still valid
+app.get('/api/me', (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'No token' });
+  try {
+    const decoded = jwt.verify(token, 'your_jwt_secret');
+    res.json({ id: decoded.id, email: decoded.email });
+  } catch (err) {
+    res.status(401).json({ message: 'Invalid or expired token' });
+  }
+});
+
 app.post('/api/forgot-password', async (req, res) => {              
   try {                                                             
     const { email } = req.body;

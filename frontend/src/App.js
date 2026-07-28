@@ -19,11 +19,19 @@ import Product from './components/Product';
 import ManageAccount from './components/ManageAccount';
 import OrderSuccess from './components/OrderSuccess';
 import { CartProvider } from './components/CartContext';
+import { validateSession } from './components/auth';
 import './App.css';
-
 
 function App() {
   const [showSplash, setShowSplash] = React.useState(true);
+
+  // Validate the stored JWT on every app startup.
+  // If the token is expired or belongs to a previous session, clear it so
+  // the user is treated as a guest — preventing them from seeing another
+  // user's cart or account data.
+  React.useEffect(() => {
+    validateSession();
+  }, []);
 
   const ProtectedRoute = ({ children }) => {
     const token = sessionStorage.getItem("token");

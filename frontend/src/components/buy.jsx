@@ -33,6 +33,7 @@ const Buy = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [isCOD, setIsCOD] = useState(false);
 
   const subtotal = itemsList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.1;
@@ -126,6 +127,7 @@ const Buy = () => {
         setIsProcessing(false);
 
         if (res.ok) {
+          setIsCOD(true);
           setOrderSuccess(true);
 
           if (rawState?.fromCart && rawState?.selectedIds) {
@@ -135,7 +137,9 @@ const Buy = () => {
           }
 
           setTimeout(() => {
-            navigate("/order-success", { state: { order: data.order || orderPayload } });
+            // Ensure status is always "Pending (COD)" for COD orders regardless of API response
+            const orderToShow = { ...orderPayload, ...(data.order || {}), status: "Pending (COD)" };
+            navigate("/order-success", { state: { order: orderToShow } });
           }, 1000);
         } else {
           setErrorMessage(data.message || "Failed to place Cash on Delivery order.");
@@ -455,8 +459,8 @@ const Buy = () => {
 
         {/* Payment Success Notification */}
         {orderSuccess ? (
-          <div style={{ padding: "12px", backgroundColor: "rgba(40, 167, 69, 0.2)", border: "1px solid #28a745", borderRadius: "8px", marginTop: "15px", textAlign: "center", color: "#4cd137", fontSize: "14px" }}>
-            🎉 <strong>Payment Successful!</strong><br />Your order has been placed.
+          <div style={{ padding: "12px", backgroundColor: isCOD ? "rgba(243,156,18,0.15)" : "rgba(40,167,69,0.2)", border: `1px solid ${isCOD ? "#f39c12" : "#28a745"}`, borderRadius: "8px", marginTop: "15px", textAlign: "center", color: isCOD ? "#f39c12" : "#4cd137", fontSize: "14px" }}>
+            {isCOD ? <>⏳ <strong>Order Placed!</strong><br />Your Cash on Delivery order has been registered.</> : <>🎉 <strong>Payment Successful!</strong><br />Your order has been placed.</>}
           </div>
         ) : (
           <button

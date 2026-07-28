@@ -145,8 +145,8 @@ const OrderSuccess = () => {
           </div>
         ))}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "15px", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: "18px", fontWeight: "bold" }}>
-          <span>Total Paid:</span>
-          <span style={{ color: "#4cd137" }}>LKR {totalAmount ? totalAmount.toFixed(2) : "0.00"}</span>
+          <span>{order?.status?.includes("Pending") ? "Total Amount (Pay on Delivery):" : "Total Paid:"}</span>
+          <span style={{ color: order?.status?.includes("Pending") ? "#f39c12" : "#4cd137" }}>LKR {totalAmount ? totalAmount.toFixed(2) : "0.00"}</span>
         </div>
       </div>
 

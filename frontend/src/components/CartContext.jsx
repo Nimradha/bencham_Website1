@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useRef } from "react";
 
 export const CartContext = createContext();
 
@@ -6,83 +6,75 @@ export const CartContext = createContext();
 // Falls back to "cart_guest" when no user is logged in.
 const getCartKey = () => {
   const email = sessionStorage.getItem("userEmail");
-  const key = email ? `cart_${email}` : "cart_guest";
-  console.log("getCartKey called. Email:", email, "Key:", key);
-  return key;
+  return email ? `cart_${email}` : "cart_guest";
 };
 
 export const CartProvider = ({ children }) => {
+  // Track the current cart key so we know when the user changes
+  const currentKeyRef = useRef(getCartKey());
 
   // Load initial cart from the current user's key
   const [cartItems, setCartItems] = useState(() => {
     const key = getCartKey();
     const saved = localStorage.getItem(key);
-    console.log("CartProvider initial load. Key:", key, "Saved items:", saved);
     return saved ? JSON.parse(saved) : [];
   });
 
   // Re-load the cart whenever the logged-in user changes (e.g. after login/logout)
   useEffect(() => {
-    const handleStorageChange = () => {
-      const key = getCartKey();
-      const saved = localStorage.getItem(key);
-      console.log("handleStorageChange triggered. Key:", key, "Saved items:", saved);
+    const handleUserChanged = () => {
+      const newKey = getCartKey();
+      currentKeyRef.current = newKey;
+      const saved = localStorage.getItem(newKey);
       setCartItems(saved ? JSON.parse(saved) : []);
     };
     // Listen for login/logout events dispatched by Login/Header components
-    window.addEventListener("userChanged", handleStorageChange);
-    return () => window.removeEventListener("userChanged", handleStorageChange);
+    window.addEventListener("userChanged", handleUserChanged);
+    return () => window.removeEventListener("userChanged", handleUserChanged);
   }, []);
 
-  // Persist cart to the current user's key on every change
+  // Persist cart to the CURRENT user's key on every change
+  // Uses currentKeyRef so it always writes to the right user even during
+  // rapid state transitions (e.g. login → addToCart in same tick)
   useEffect(() => {
-    const key = getCartKey();
-    console.log("Persisting cart to localStorage. Key:", key, "Items:", cartItems);
+    const key = currentKeyRef.current;
     localStorage.setItem(key, JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Optionally sync from backend on mount (kept from original)
-  useEffect(() => {
-    const fetchCart = async () => {
-      const token = sessionStorage.getItem("token");
-      if (!token) return;
-      try {
-        const res = await fetch("http://localhost:3000/api/cart", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        setCartItems(data);
-      } catch (err) {
-        console.error("Failed to fetch cart:", err);
-      }
-    };
-    fetchCart();
-  }, []);
-
+  // addToCart: always reads from localStorage for the CURRENT user's key.
+  // This avoids stale React state when addToCart is called immediately after
+  // login (e.g. via the login modal on the product page), where React state
+  // hasn't re-rendered yet with the new user's empty cart.
   const addToCart = (item) => {
-    const exist = cartItems.find(ci => ci.id === item.id);
+    const key = getCartKey();
+    currentKeyRef.current = key; // ensure ref is in sync
+    const saved = localStorage.getItem(key);
+    const currentItems = saved ? JSON.parse(saved) : [];
+
+    const exist = currentItems.find(ci => ci.id === item.id);
+    let updatedItems;
     if (exist) {
-      setCartItems(cartItems.map(ci =>
+      updatedItems = currentItems.map(ci =>
         ci.id === item.id ? { ...ci, quantity: ci.quantity + item.quantity } : ci
-      ));
+      );
     } else {
-      setCartItems([...cartItems, item]);
+      updatedItems = [...currentItems, item];
     }
+    setCartItems(updatedItems);
   };
 
   const removeFromCart = (id) => {
-    setCartItems(cartItems.filter(ci => ci.id !== id));
+    setCartItems(prev => prev.filter(ci => ci.id !== id));
   };
 
   const increaseQty = (id) => {
-    setCartItems(cartItems.map(ci =>
+    setCartItems(prev => prev.map(ci =>
       ci.id === id ? { ...ci, quantity: ci.quantity + 1 } : ci
     ));
   };
 
   const decreaseQty = (id) => {
-    setCartItems(cartItems.map(ci =>
+    setCartItems(prev => prev.map(ci =>
       ci.id === id && ci.quantity > 1 ? { ...ci, quantity: ci.quantity - 1 } : ci
     ));
   };
@@ -95,8 +87,9 @@ export const CartProvider = ({ children }) => {
 
   // Clear only the current user's cart
   const clearCart = () => {
+    const key = getCartKey();
+    localStorage.removeItem(key);
     setCartItems([]);
-    localStorage.removeItem(getCartKey());
   };
 
   return (
