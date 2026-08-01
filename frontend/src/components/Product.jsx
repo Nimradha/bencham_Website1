@@ -1,8 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { detailsData } from "./Details";
 
 const Product = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const searchParams = new URLSearchParams(location.search);
+    const searchQuery = (searchParams.get("search") || "").trim().toLowerCase();
 
     const products = [
   { id: 2, img: "/images/fig2.png", name: "Figure 1" },
@@ -37,13 +42,22 @@ const Product = () => {
   { id: 1, img: "/images/fig1.png", name: "Figure 29" },
 ];
 
+    // Filter products when search term is active
+    const filteredProducts = products.filter(p => {
+        if (!searchQuery) return true;
+        const details = detailsData[p.id] || {};
+        const title = (details.title || p.name || "").toLowerCase();
+        const desc = (details.description || "").toLowerCase();
+        const pId = String(p.id);
+        return title.includes(searchQuery) || desc.includes(searchQuery) || pId === searchQuery;
+    });
+
     const imageGrid = {
         display: 'grid',
         gridTemplateColumns: 'repeat(5, 1fr)',
         gap: '40px',
         margin: '40px 40px',
         objectFit: 'cover',
-        
     };
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -51,34 +65,92 @@ const Product = () => {
 
     const indexOfLast = currentPage * productsPerPage;
     const indexOfFirst = indexOfLast - productsPerPage;
-    const currentProducts = products.slice(indexOfFirst, indexOfLast);
+    const currentProducts = searchQuery
+        ? filteredProducts
+        : filteredProducts.slice(indexOfFirst, indexOfLast);
 
     const imageItem = {
         width: "100%",
-       
     };
+
     const handleImageClick = (id, imagePath) => {
-     navigate(`/details/${id}`, { state: { image: imagePath } });
-   };
+        navigate(`/details/${id}`, { state: { image: imagePath } });
+    };
+
     return (
         <div>
-            <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "35px", color: "#cdaf5b" }}>Natural Gem Pendants</h1>
-            <p style={{fontFamily: "'Montserrat', sans-serif",fontSize: "20px",color: "#ebe2c7"}}>Explore our curated collection of ethnically sourced natural gemstones <br></br>set in handcrafted 18K and 22K gold.</p>
+            {searchQuery ? (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "20px 40px" }}>
+                    <div>
+                        <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "30px", color: "#cdaf5b", margin: 0 }}>
+                            Search Results for "{searchParams.get("search")}"
+                        </h1>
+                        <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "16px", color: "#ebe2c7", margin: "6px 0 0" }}>
+                            Found {filteredProducts.length} matching gemstone products
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => navigate("/product")}
+                        style={{
+                            padding: "8px 18px",
+                            backgroundColor: "#ad9551",
+                            color: "#1e0012",
+                            border: "none",
+                            borderRadius: "6px",
+                            fontWeight: "600",
+                            cursor: "pointer"
+                        }}
+                    >
+                        Clear Search ✖
+                    </button>
+                </div>
+            ) : (
+                <>
+                    <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "35px", color: "#cdaf5b" }}>Natural Gem Pendants</h1>
+                    <p style={{fontFamily: "'Montserrat', sans-serif",fontSize: "20px",color: "#ebe2c7"}}>Explore our curated collection of ethnically sourced natural gemstones <br></br>set in handcrafted 18K and 22K gold.</p>
+                </>
+            )}
 
-            <section style={imageGrid}>
-               {currentProducts.map((p) => (
-                  <div key={p.id} style={imageItem}>
-                    <img
-                     src={p.img}
-                     alt={p.name}
-                     style={{ width: "100%" }}
-                     className="zoomImage"
-                     onClick={() => handleImageClick(p.id, p.img)}
-                    />
-                    <p>{p.name}</p>
-                  </div>
-                ))}
-            </section>
+            {filteredProducts.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "60px 20px", color: "rgba(255,255,255,0.7)", fontFamily: "'Montserrat', sans-serif" }}>
+                    <h2>No products found matching "{searchParams.get("search")}"</h2>
+                    <p style={{ color: "rgba(255,255,255,0.5)" }}>Try checking spelling or searching for general keywords like "Bracelet", "Necklace", or "Pendant".</p>
+                    <button
+                        onClick={() => navigate("/product")}
+                        style={{
+                            marginTop: "15px",
+                            padding: "10px 22px",
+                            backgroundColor: "#ad9551",
+                            color: "black",
+                            fontWeight: "600",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer"
+                        }}
+                    >
+                        View All Products
+                    </button>
+                </div>
+            ) : (
+                <section style={imageGrid}>
+                   {currentProducts.map((p) => {
+                      const title = (detailsData[p.id] && detailsData[p.id].title) ? detailsData[p.id].title : p.name;
+                      return (
+                        <div key={p.id} style={imageItem}>
+                          <img
+                           src={p.img}
+                           alt={title}
+                           style={{ width: "100%" }}
+                           className="zoomImage"
+                           onClick={() => handleImageClick(p.id, p.img)}
+                          />
+                          <p style={{ color: "white", marginTop: "8px", fontWeight: "500" }}>{title}</p>
+                        </div>
+                      );
+                   })}
+                </section>
+            )}
+
 
             <div style={{display:"flex", justifyContent:"center", gap:"10px", marginTop:"20px", marginBottom:"40px"}}>
 

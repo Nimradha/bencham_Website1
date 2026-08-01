@@ -78,10 +78,28 @@ const orderSchema = new mongoose.Schema({
   tax: Number,
   totalAmount: Number,
   status: { type: String, default: "Paid" },
+  cancelledAt: { type: Date },
+  returnReason: { type: String },
+  returnRequestedAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 
 const Order = mongoose.model("Order", orderSchema);
+
+const reviewSchema = new mongoose.Schema({
+  productId: { type: String, required: true },
+  productTitle: { type: String },
+  productImage: { type: String },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  orderId: { type: mongoose.Schema.Types.ObjectId, ref: "Order", required: true },
+  userName: { type: String },
+  userEmail: { type: String },
+  rating: { type: Number, required: true, min: 1, max: 5 },
+  comment: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Review = mongoose.model("Review", reviewSchema);
 
 
 
@@ -560,6 +578,288 @@ app.get("/api/orders", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// ── Mark order as Delivered ──────────────────────────────────────────────────
+app.patch("/api/orders/:id/deliver", authMiddleware, async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    order.status = "Delivered";
+    await order.save();
+
+    res.json({ message: "Order status updated to Delivered", order });
+  } catch (error) {
+    console.error("Mark deliver error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+// ── Cancel an order ──────────────────────────────────────────────────────────
+app.patch("/api/orders/:id/cancel", authMiddleware, async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const cancellableStatuses = ["Pending (COD)", "Paid"];
+    if (!cancellableStatuses.includes(order.status)) {
+      return res.status(400).json({ message: `Cannot cancel an order with status: ${order.status}` });
+    }
+
+    order.status = "Cancelled";
+    order.cancelledAt = new Date();
+    await order.save();
+
+    // Send cancellation email
+    try {
+      let recipientEmail = req.user?.email;
+      if (!recipientEmail) {
+        const user = await User.findById(req.user.id);
+        recipientEmail = user?.email;
+      }
+      if (recipientEmail) sendCancellationEmail(order, recipientEmail);
+    } catch (e) {
+      console.error("Cancellation email error:", e);
+    }
+
+    res.json({ message: "Order cancelled successfully", order });
+  } catch (error) {
+    console.error("Cancel order error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ── Request a return ─────────────────────────────────────────────────────────
+app.patch("/api/orders/:id/return", authMiddleware, async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const order = await Order.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.status !== "Delivered") {
+      return res.status(400).json({ message: "Returns can only be requested for delivered orders." });
+    }
+
+    order.status = "Return Requested";
+    order.returnReason = reason || "No reason provided";
+    order.returnRequestedAt = new Date();
+    await order.save();
+
+    // Send return request email
+    try {
+      let recipientEmail = req.user?.email;
+      if (!recipientEmail) {
+        const user = await User.findById(req.user.id);
+        recipientEmail = user?.email;
+      }
+      if (recipientEmail) sendReturnRequestEmail(order, recipientEmail);
+    } catch (e) {
+      console.error("Return email error:", e);
+    }
+
+    res.json({ message: "Return request submitted successfully", order });
+  } catch (error) {
+    console.error("Return order error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ── REVIEWS API ─────────────────────────────────────────────────────────────
+
+// Post a review
+app.post("/api/reviews", authMiddleware, async (req, res) => {
+  try {
+    const { productId, productTitle, productImage, orderId, rating, comment } = req.body;
+
+    if (!productId || !orderId || !rating || !comment) {
+      return res.status(400).json({ message: "Missing required review fields" });
+    }
+
+    // Check if already reviewed for this order & product
+    const existing = await Review.findOne({ userId: req.user.id, orderId, productId });
+    if (existing) {
+      return res.status(400).json({ message: "You have already reviewed this item for this order." });
+    }
+
+    const user = await User.findById(req.user.id);
+    const userName = user?.name || (user?.email ? user.email.split("@")[0] : "Customer");
+
+    const newReview = new Review({
+      productId,
+      productTitle: productTitle || "Gemstone Item",
+      productImage: productImage || "",
+      userId: req.user.id,
+      orderId,
+      userName,
+      userEmail: user?.email || "",
+      rating: Number(rating),
+      comment: comment.trim()
+    });
+
+    await newReview.save();
+    res.status(201).json({ message: "Review submitted successfully!", review: newReview });
+  } catch (error) {
+    console.error("Post review error:", error);
+    res.status(500).json({ message: "Failed to submit review" });
+  }
+});
+
+// Get reviews for a specific product + average rating & breakdown
+app.get("/api/reviews/product/:productId", async (req, res) => {
+  try {
+    const reviews = await Review.find({ productId: req.params.productId }).sort({ createdAt: -1 });
+
+    const totalReviews = reviews.length;
+    let averageRating = 0;
+    const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+    if (totalReviews > 0) {
+      const sum = reviews.reduce((acc, r) => {
+        const star = Math.min(5, Math.max(1, Math.round(r.rating)));
+        starCounts[star] = (starCounts[star] || 0) + 1;
+        return acc + r.rating;
+      }, 0);
+      averageRating = Number((sum / totalReviews).toFixed(1));
+    }
+
+    res.json({
+      reviews,
+      stats: {
+        totalReviews,
+        averageRating,
+        starCounts
+      }
+    });
+  } catch (error) {
+    console.error("Get product reviews error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get user's submitted reviews
+app.get("/api/reviews/user", authMiddleware, async (req, res) => {
+  try {
+    const reviews = await Review.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    res.json(reviews);
+  } catch (error) {
+    console.error("Get user reviews error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get set of orderId+productId reviewed by current user (for filtering To Review queue)
+app.get("/api/reviews/user/submitted", authMiddleware, async (req, res) => {
+  try {
+    const reviews = await Review.find({ userId: req.user.id }).select("orderId productId");
+    const reviewedKeys = reviews.map(r => `${r.orderId}_${r.productId}`);
+    res.json(reviewedKeys);
+  } catch (error) {
+    console.error("Get user submitted review keys error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+// ── Cancellation Email ────────────────────────────────────────────────────────
+const sendCancellationEmail = async (order, recipientEmail) => {
+  const isCOD = order.paymentMethod?.includes("COD") || order.paymentMethod?.includes("Cash");
+  const shortId = order._id.toString().slice(-8).toUpperCase();
+  const itemsHtml = (order.items || []).map(item => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>${item.title}</strong></td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">LKR ${(item.price * item.quantity).toFixed(2)}</td>
+    </tr>`).join("");
+
+  const refundNote = isCOD
+    ? `<p style="color:#555;font-size:14px;">Since this was a <strong>Cash on Delivery</strong> order, no payment was collected so no refund is needed.</p>`
+    : `<div style="margin:15px 0;padding:12px;background:#fff3cd;border-left:4px solid #f39c12;font-size:13px;color:#856404;">
+        💳 <strong>Refund Notice:</strong> Since you paid online, your refund of <strong>LKR ${Number(order.totalAmount).toFixed(2)}</strong> will be processed within <strong>5–10 business days</strong> to your original payment method.
+       </div>`;
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;background:#f7f7f7;padding:20px;color:#333;">
+      <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+        <div style="background:#27001a;color:#d4be82;text-align:center;padding:25px 20px;">
+          <h1 style="margin:0;font-size:24px;letter-spacing:1px;">BENCHAM JEWELLERS</h1>
+          <p style="margin:5px 0 0;font-size:12px;color:#fff;opacity:0.8;">Where Elegance Meets Sparkle</p>
+        </div>
+        <div style="padding:25px;">
+          <h2 style="color:#c0392b;font-size:18px;margin-top:0;">🚫 Order Cancelled</h2>
+          <p style="font-size:15px;line-height:1.5;color:#444;">
+            Your order <strong>#${shortId}</strong> has been successfully cancelled on ${new Date(order.cancelledAt).toLocaleDateString()}.
+          </p>
+          ${refundNote}
+          <h3 style="border-bottom:2px solid #27001a;padding-bottom:5px;color:#27001a;font-size:16px;">Cancelled Order Summary</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <thead><tr style="background:#f2f2f2;">
+              <th style="padding:8px;text-align:left;">Item</th>
+              <th style="padding:8px;text-align:center;">Qty</th>
+              <th style="padding:8px;text-align:right;">Price</th>
+            </tr></thead>
+            <tbody>${itemsHtml}</tbody>
+          </table>
+          <div style="display:flex;justify-content:space-between;border-top:2px solid #eee;padding-top:10px;font-size:16px;margin-top:10px;">
+            <strong>Order Total:</strong>
+            <strong style="color:#27001a;">LKR ${Number(order.totalAmount).toFixed(2)}</strong>
+          </div>
+          <div style="margin-top:30px;text-align:center;font-size:12px;color:#888;border-top:1px solid #eee;padding-top:15px;">
+            Thank you for shopping with Bencham Jewellers.<br/>
+            If you have any questions, contact us at support@benchamjewellers.com
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  await transporter.sendMail({
+    from: '"Bencham Jewellers" <nimradhanethmini2002@gmail.com>',
+    to: recipientEmail,
+    bcc: STORE_EMAIL,
+    subject: `Order Cancelled: Bencham Jewellers #${shortId}`,
+    html
+  });
+  console.log(`Cancellation email sent to ${recipientEmail}`);
+};
+
+// ── Return Request Email ───────────────────────────────────────────────────────
+const sendReturnRequestEmail = async (order, recipientEmail) => {
+  const shortId = order._id.toString().slice(-8).toUpperCase();
+  const html = `
+    <div style="font-family:Arial,sans-serif;background:#f7f7f7;padding:20px;color:#333;">
+      <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+        <div style="background:#27001a;color:#d4be82;text-align:center;padding:25px 20px;">
+          <h1 style="margin:0;font-size:24px;letter-spacing:1px;">BENCHAM JEWELLERS</h1>
+          <p style="margin:5px 0 0;font-size:12px;color:#fff;opacity:0.8;">Where Elegance Meets Sparkle</p>
+        </div>
+        <div style="padding:25px;">
+          <h2 style="color:#8e44ad;font-size:18px;margin-top:0;">↩️ Return Request Received</h2>
+          <p style="font-size:15px;line-height:1.5;color:#444;">
+            We have received your return request for order <strong>#${shortId}</strong> placed on ${new Date(order.createdAt).toLocaleDateString()}.
+          </p>
+          <div style="margin:15px 0;padding:12px;background:#f3e5ff;border-left:4px solid #8e44ad;font-size:13px;color:#6c3483;">
+            📋 <strong>Return Reason:</strong> ${order.returnReason}
+          </div>
+          <div style="margin:15px 0;padding:12px;background:#d5f5e3;border-left:4px solid #27ae60;font-size:13px;color:#1e8449;">
+            ✅ Our team will contact you within <strong>2–3 business days</strong> with return instructions and collection arrangements.
+          </div>
+          <div style="margin-top:30px;text-align:center;font-size:12px;color:#888;border-top:1px solid #eee;padding-top:15px;">
+            Thank you for shopping with Bencham Jewellers.<br/>
+            If you have any questions, contact us at support@benchamjewellers.com
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  await transporter.sendMail({
+    from: '"Bencham Jewellers" <nimradhanethmini2002@gmail.com>',
+    to: recipientEmail,
+    bcc: STORE_EMAIL,
+    subject: `Return Request Received: Bencham Jewellers #${shortId}`,
+    html
+  });
+  console.log(`Return request email sent to ${recipientEmail}`);
+};
 
 // PayHere Configuration (Sandbox User Credentials)
 const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID || "1235278";

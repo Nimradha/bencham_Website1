@@ -32,6 +32,22 @@ const ManageAccount = () => {
   const [orderTab, setOrderTab] = useState("all");
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
 
+  // Cancel / Return state
+  const [cancellingOrderId, setCancellingOrderId] = useState(null);
+  const [returnModalOrderId, setReturnModalOrderId] = useState(null);
+  const [returnReason, setReturnReason] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+  const [toast, setToast] = useState(null); // { msg, type: 'success'|'error' }
+
+  // Review state
+  const [userReviews, setUserReviews] = useState([]);
+  const [reviewedKeys, setReviewedKeys] = useState([]); // array of orderId_productId strings
+  const [reviewModalItem, setReviewModalItem] = useState(null); // { orderId, productId, title, price, image }
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewHoverRating, setReviewHoverRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+
   useEffect(() => {
     if (location.state?.section) {
       setActiveSection(location.state.section);
@@ -76,6 +92,131 @@ const ManageAccount = () => {
     };
     fetchOrders();
   }, []);
+
+  // Fetch user reviews on mount
+  useEffect(() => {
+    const fetchUserReviews = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        if (!token) return;
+        const [resRev, resKeys] = await Promise.all([
+          fetch("http://localhost:3000/api/reviews/user", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("http://localhost:3000/api/reviews/user/submitted", { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+        if (resRev.ok) {
+          const dataRev = await resRev.json();
+          setUserReviews(dataRev);
+        }
+        if (resKeys.ok) {
+          const dataKeys = await resKeys.json();
+          setReviewedKeys(dataKeys);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user reviews:", err);
+      }
+    };
+    fetchUserReviews();
+  }, []);
+
+  // ── Toast helper ────────────────────────────────────────────────────────────
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  // ── Cancel Order ─────────────────────────────────────────────────────────────
+  const handleCancelOrder = async (orderId) => {
+    const confirmed = window.confirm("Are you sure you want to cancel this order? This action cannot be undone.");
+    if (!confirmed) return;
+    setActionLoading(true);
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(`http://localhost:3000/api/orders/${orderId}/cancel`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUserOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: "Cancelled", cancelledAt: new Date().toISOString() } : o));
+        showToast("Order cancelled successfully. A confirmation email has been sent.");
+      } else {
+        showToast(data.message || "Failed to cancel order.", "error");
+      }
+    } catch (err) {
+      showToast("Network error. Please try again.", "error");
+    } finally {
+      setActionLoading(false);
+      setCancellingOrderId(null);
+    }
+  };
+
+  // ── Submit Return Request ─────────────────────────────────────────────────────
+  const handleReturnRequest = async () => {
+    if (!returnReason.trim()) { showToast("Please enter a reason for your return.", "error"); return; }
+    setActionLoading(true);
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(`http://localhost:3000/api/orders/${returnModalOrderId}/return`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reason: returnReason })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUserOrders(prev => prev.map(o => o._id === returnModalOrderId ? { ...o, status: "Return Requested", returnReason, returnRequestedAt: new Date().toISOString() } : o));
+        showToast("Return request submitted! Our team will contact you within 2–3 business days.");
+        setReturnModalOrderId(null);
+        setReturnReason("");
+      } else {
+        showToast(data.message || "Failed to submit return.", "error");
+      }
+    } catch (err) {
+      showToast("Network error. Please try again.", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ── Submit Review ────────────────────────────────────────────────────────────
+  const handleReviewSubmit = async () => {
+    if (!reviewModalItem) return;
+    if (!reviewComment.trim()) {
+      showToast("Please write a comment for your review.", "error");
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch("http://localhost:3000/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          productId: String(reviewModalItem.id || reviewModalItem.productId || "1"),
+          productTitle: reviewModalItem.title,
+          productImage: reviewModalItem.image,
+          orderId: reviewModalItem.orderId,
+          rating: reviewRating,
+          comment: reviewComment
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("Review submitted successfully! Thank you for your feedback.");
+        setUserReviews(prev => [data.review, ...prev]);
+        setReviewedKeys(prev => [...prev, `${reviewModalItem.orderId}_${reviewModalItem.id || reviewModalItem.productId || "1"}`]);
+        setReviewModalItem(null);
+        setReviewComment("");
+        setReviewRating(5);
+      } else {
+        showToast(data.message || "Failed to submit review.", "error");
+      }
+    } catch (err) {
+      showToast("Network error. Failed to submit review.", "error");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
 
   // ── Sidebar items ──────────────────────────────────────────────────────────
   const sidebarSections = [
@@ -306,7 +447,7 @@ const ManageAccount = () => {
                 </label>
               </div>
 
-              {/* Address Book card — Default Shipping */}
+              {/* Address Book card â€” Default Shipping */}
               <div style={card}>
                 <div style={cardTitle}>
                   Address Book
@@ -322,7 +463,7 @@ const ManageAccount = () => {
                       <p style={{ ...profileName, marginBottom: "4px" }}>{addr.fullName}</p>
                       <p style={{ ...profileEmail, marginBottom: "2px" }}>{addr.addressLine}</p>
                       <p style={{ ...profileEmail, marginBottom: "2px" }}>
-                        {[addr.province, addr.district, addr.city].filter(Boolean).join(" · ")}
+                        {[addr.province, addr.district, addr.city].filter(Boolean).join(" Â· ")}
                       </p>
                       <p style={profileEmail}>(+94) {addr.phone}</p>
                     </>
@@ -335,7 +476,7 @@ const ManageAccount = () => {
                 )}
               </div>
 
-              {/* Billing card — Default Billing */}
+              {/* Billing card â€” Default Billing */}
               <div style={card}>
                 <div style={cardTitle}>&nbsp;</div>
                 {savedAddresses.length > 0 ? (() => {
@@ -348,7 +489,7 @@ const ManageAccount = () => {
                       <p style={{ ...profileName, marginBottom: "4px" }}>{addr.fullName}</p>
                       <p style={{ ...profileEmail, marginBottom: "2px" }}>{addr.addressLine}</p>
                       <p style={{ ...profileEmail, marginBottom: "2px" }}>
-                        {[addr.province, addr.district, addr.city].filter(Boolean).join(" · ")}
+                        {[addr.province, addr.district, addr.city].filter(Boolean).join(" Â· ")}
                       </p>
                       <p style={profileEmail}>(+94) {addr.phone}</p>
                     </>
@@ -492,7 +633,7 @@ const ManageAccount = () => {
                 </div>
               )}
 
-              {/* ADD NEW ADDRESS button — always visible */}
+              {/* ADD NEW ADDRESS button â€” always visible */}
               <div style={{ display: "flex", justifyContent: "flex-end", padding: "20px 24px" }}>
                 <button
                   style={{
@@ -539,207 +680,186 @@ const ManageAccount = () => {
             {loadingOrders ? (
               <div style={{ color: "rgba(255,255,255,0.6)", padding: "20px" }}>Loading your orders...</div>
             ) : userOrders.length === 0 ? (
-              <div style={{
-                backgroundColor: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(173,149,81,0.25)",
-                borderRadius: "8px",
-                padding: "40px",
-                textAlign: "center",
-                color: "rgba(255,255,255,0.5)",
-                fontSize: "14px",
-                marginTop: "15px"
-              }}>
+              <div style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(173,149,81,0.25)", borderRadius: "8px", padding: "40px", textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: "14px", marginTop: "15px" }}>
                 📦 You have no past orders yet.<br />
-                <button
-                  onClick={() => navigate("/product")}
-                  style={{
-                    marginTop: "15px",
-                    padding: "10px 20px",
-                    backgroundColor: "#d4be82",
-                    color: "black",
-                    fontWeight: "600",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer"
-                  }}
-                >
+                <button onClick={() => navigate("/product")} style={{ marginTop: "15px", padding: "10px 20px", backgroundColor: "#d4be82", color: "black", fontWeight: "600", border: "none", borderRadius: "4px", cursor: "pointer" }}>
                   Explore Gemstone Collection
                 </button>
               </div>
-            ) : (
-              (() => {
-                const filteredOrders = userOrders.filter((ord) => {
-                  const search = orderSearchQuery.trim().toLowerCase();
-                  const matchesSearch =
-                    !search ||
-                    (ord._id && ord._id.toLowerCase().includes(search)) ||
-                    (ord.items && ord.items.some(i => i.title && i.title.toLowerCase().includes(search)));
+            ) : (() => {
+              const TABS = [
+                { id: "all",       label: "All",        filter: () => true },
+                { id: "toPay",     label: "To Pay",     filter: s => s.includes("pending") || s.includes("cod") },
+                { id: "toShip",    label: "To Ship",    filter: s => s === "paid" || s.includes("processing") },
+                { id: "toReceive", label: "To Receive", filter: s => s.includes("dispatch") || s.includes("transit") || s.includes("ship") },
+                { id: "delivered", label: "Delivered",  filter: s => s.includes("delivered") || s.includes("completed") },
+                { id: "toReview",  label: "To Review",  filter: s => s.includes("delivered") || s.includes("completed") },
+              ];
 
-                  if (!matchesSearch) return false;
+              const activeTab = TABS.find(t => t.id === orderTab) || TABS[0];
+              const search = orderSearchQuery.trim().toLowerCase();
 
-                  const status = (ord.status || "").toLowerCase();
-                  if (orderTab === "toPay") return status.includes("pending") || status.includes("cod");
-                  if (orderTab === "toShip") return status.includes("paid") || status.includes("processing") || status.includes("ship");
-                  if (orderTab === "toReceive") return status.includes("dispatched") || status.includes("transit") || status.includes("receive");
-                  if (orderTab === "toReview") return status.includes("delivered") || status.includes("completed") || status.includes("review");
-                  return true;
-                });
+              const filteredOrders = userOrders.filter(ord => {
+                const s = (ord.status || "").toLowerCase();
+                if (!activeTab.filter(s)) return false;
+                return !search || (ord._id && ord._id.toLowerCase().includes(search)) ||
+                  (ord.items && ord.items.some(i => i.title && i.title.toLowerCase().includes(search)));
+              });
 
-                return (
-                  <>
-                    {/* Status Filter Tabs (Image 2 Daraz style) */}
-                    <div style={{ display: "flex", gap: "25px", borderBottom: "1px solid rgba(255,255,255,0.15)", marginBottom: "20px", paddingBottom: "2px" }}>
-                      {[
-                        { id: "all", label: "All" },
-                        { id: "toPay", label: "To Pay" },
-                        { id: "toShip", label: "To Ship" },
-                        { id: "toReceive", label: "To Receive" },
-                        { id: "toReview", label: "To Review" },
-                      ].map((tab) => {
-                        const count = userOrders.filter((ord) => {
-                          const status = (ord.status || "").toLowerCase();
-                          if (tab.id === "toPay") return status.includes("pending") || status.includes("cod");
-                          if (tab.id === "toShip") return status.includes("paid") || status.includes("processing") || status.includes("ship");
-                          if (tab.id === "toReceive") return status.includes("dispatched") || status.includes("transit") || status.includes("receive");
-                          if (tab.id === "toReview") return status.includes("delivered") || status.includes("completed") || status.includes("review");
-                          return true;
-                        }).length;
+              const getStatusBadge = (status) => {
+                const s = (status || "").toLowerCase();
+                if (s.includes("pending") || s.includes("cod"))
+                  return { bg: "rgba(243,156,18,0.2)", color: "#f39c12", border: "#f39c12", icon: "⏳" };
+                if (s.includes("cancelled"))
+                  return { bg: "rgba(192,57,43,0.2)", color: "#e74c3c", border: "#c0392b", icon: "🚫" };
+                if (s.includes("return"))
+                  return { bg: "rgba(142,68,173,0.2)", color: "#9b59b6", border: "#8e44ad", icon: "↩️" };
+                if (s.includes("delivered") || s.includes("completed"))
+                  return { bg: "rgba(39,174,96,0.2)", color: "#2ecc71", border: "#27ae60", icon: "✅" };
+                return { bg: "rgba(40,167,69,0.2)", color: "#4cd137", border: "#28a745", icon: "✓" };
+              };
 
+              return (
+                <>
+                  {/* Status Filter Tabs */}
+                  <div style={{ display: "flex", gap: "0", borderBottom: "1px solid rgba(255,255,255,0.15)", marginBottom: "20px" }}>
+                    {TABS.map(tab => {
+                      const count = userOrders.filter(o => tab.filter((o.status || "").toLowerCase())).length;
+                      return (
+                        <button key={tab.id} onClick={() => setOrderTab(tab.id)} style={{
+                          background: "none", border: "none", borderBottom: orderTab === tab.id ? "3px solid #ad9551" : "3px solid transparent",
+                          color: orderTab === tab.id ? "#ad9551" : "#b9c7de", fontSize: "14px",
+                          fontWeight: orderTab === tab.id ? "600" : "400", padding: "8px 16px 10px",
+                          cursor: "pointer", transition: "all 0.2s ease", whiteSpace: "nowrap"
+                        }}>
+                          {tab.label}{tab.id !== "all" && count > 0 ? ` (${count})` : ""}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Search Bar */}
+                  <div style={{ position: "relative", marginBottom: "20px" }}>
+                    <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#ad9551" }}>🔍</span>
+                    <input type="text" placeholder="Search by order ID or product name..." value={orderSearchQuery}
+                      onChange={e => setOrderSearchQuery(e.target.value)}
+                      style={{ width: "100%", padding: "10px 14px 10px 40px", borderRadius: "6px", border: "1px solid rgba(173,149,81,0.4)", backgroundColor: "rgba(255,255,255,0.05)", color: "white", fontSize: "14px", outline: "none", boxSizing: "border-box" }} />
+                  </div>
+
+                  {/* Orders List */}
+                  {filteredOrders.length > 0 ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                      {filteredOrders.map((ord, idx) => {
+                        const badge = getStatusBadge(ord.status);
+                        const isCancellable = ord.status === "Pending (COD)";
+                        const isDelivered = (ord.status || "").toLowerCase().includes("delivered") || (ord.status || "").toLowerCase().includes("completed");
                         return (
-                          <button
-                            key={tab.id}
-                            onClick={() => setOrderTab(tab.id)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              borderBottom: orderTab === tab.id ? "3px solid #ad9551" : "3px solid transparent",
-                              color: orderTab === tab.id ? "#ad9551" : "#b9c7de",
-                              fontSize: "15px",
-                              fontWeight: orderTab === tab.id ? "600" : "400",
-                              padding: "8px 4px",
-                              cursor: "pointer",
-                              transition: "all 0.2s ease"
-                            }}
-                          >
-                            {tab.label} {tab.id !== "all" && count > 0 ? `(${count})` : ""}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Search Bar (Image 2 style) */}
-                    <div style={{ position: "relative", marginBottom: "20px" }}>
-                      <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#ad9551" }}>🔍</span>
-                      <input
-                        type="text"
-                        placeholder="Search by order ID or product name..."
-                        value={orderSearchQuery}
-                        onChange={(e) => setOrderSearchQuery(e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "10px 14px 10px 40px",
-                          borderRadius: "6px",
-                          border: "1px solid rgba(173, 149, 81, 0.4)",
-                          backgroundColor: "rgba(255,255,255,0.05)",
-                          color: "white",
-                          fontSize: "14px",
-                          outline: "none"
-                        }}
-                      />
-                    </div>
-
-                    {/* Orders Cards List */}
-                    {filteredOrders.length > 0 ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                        {filteredOrders.map((ord, idx) => (
-                          <div
-                            key={ord._id || idx}
-                            style={{
-                              backgroundColor: "rgba(255,255,255,0.04)",
-                              border: "1px solid rgba(173,149,81,0.3)",
-                              borderRadius: "8px",
-                              padding: "20px",
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "15px"
-                            }}
-                          >
-                            {/* Store banner & status */}
+                          <div key={ord._id || idx} style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(173,149,81,0.3)", borderRadius: "8px", padding: "20px", display: "flex", flexDirection: "column", gap: "15px" }}>
+                            {/* Header */}
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "12px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                <span style={{ fontSize: "14px", fontWeight: "600", color: "#d4be82" }}>
-                                  🛍️ Bencham Collection
-                                </span>
+                                <span style={{ fontSize: "14px", fontWeight: "600", color: "#d4be82" }}>🛍️ Bencham Collection</span>
                                 <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
-                                  • #{ord._id ? ord._id.slice(-8).toUpperCase() : `ORD-${idx + 1}`} ({new Date(ord.createdAt || Date.now()).toLocaleDateString()})
+                                  • #{ord._id ? ord._id.slice(-8).toUpperCase() : `ORD-${idx+1}`} ({new Date(ord.createdAt || Date.now()).toLocaleDateString()})
                                 </span>
                               </div>
-                              {ord.status && (ord.status.includes("Pending") || ord.status.includes("COD")) ? (
-                                <span style={{
-                                  backgroundColor: "rgba(243, 156, 18, 0.2)",
-                                  color: "#f39c12",
-                                  border: "1px solid #f39c12",
-                                  fontSize: "12px",
-                                  fontWeight: "600",
-                                  padding: "3px 10px",
-                                  borderRadius: "12px"
-                                }}>
-                                  ⏳ {ord.status}
-                                </span>
-                              ) : (
-                                <span style={{
-                                  backgroundColor: "rgba(40, 167, 69, 0.2)",
-                                  color: "#4cd137",
-                                  border: "1px solid #28a745",
-                                  fontSize: "12px",
-                                  fontWeight: "600",
-                                  padding: "3px 10px",
-                                  borderRadius: "12px"
-                                }}>
-                                  ✓ {ord.status || "Paid"}
-                                </span>
-                              )}
+                              <span style={{ backgroundColor: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, fontSize: "12px", fontWeight: "600", padding: "3px 10px", borderRadius: "12px" }}>
+                                {badge.icon} {ord.status || "Paid"}
+                              </span>
                             </div>
 
-                            {/* Items list */}
-                            {ord.items && ord.items.map((item, i) => (
-                              <div key={i} style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                                {item.image && (
-                                  <img src={item.image} alt={item.title} style={{ width: "65px", height: "65px", borderRadius: "8px", objectFit: "cover" }} />
-                                )}
-                                <div style={{ flex: 1 }}>
-                                  <h4 style={{ margin: "0 0 4px 0", fontSize: "14px", color: "white" }}>{item.title}</h4>
-                                  <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Quantity: {item.quantity}</p>
-                                </div>
-                                <div style={{ fontSize: "14px", fontWeight: "600", color: "#d4be82" }}>
-                                  LKR {(item.price * item.quantity).toFixed(2)}
-                                </div>
-                              </div>
-                            ))}
+                            {/* Items */}
+                            {ord.items && ord.items.map((item, i) => {
+                              const pId = String(item.id || item.productId || (item.title ? item.title.replace(/[^0-9]/g, "") : "") || (i + 1));
+                              const reviewKey = `${ord._id}_${pId}`;
+                              const isReviewed = reviewedKeys.includes(reviewKey);
+                              const canReview = !isReviewed && isDelivered;
 
-                            {/* Footer row: Shipping address & Total */}
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "12px", marginTop: "5px" }}>
+                              return (
+                                <div key={i} style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                                  {item.image && <img src={item.image} alt={item.title} style={{ width: "65px", height: "65px", borderRadius: "8px", objectFit: "cover" }} />}
+                                  <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: "0 0 4px 0", fontSize: "14px", color: "white" }}>{item.title}</h4>
+                                    <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Quantity: {item.quantity}</p>
+                                  </div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#d4be82" }}>LKR {(item.price * item.quantity).toFixed(2)}</div>
+                                    {isReviewed ? (
+                                      <span style={{ fontSize: "11px", backgroundColor: "rgba(39,174,96,0.15)", color: "#2ecc71", border: "1px solid #27ae60", padding: "4px 8px", borderRadius: "12px", fontWeight: "600" }}>
+                                        ✓ Reviewed
+                                      </span>
+                                    ) : canReview ? (
+                                      <button
+                                        onClick={() => {
+                                          setReviewModalItem({
+                                            orderId: ord._id,
+                                            id: pId,
+                                            productId: pId,
+                                            title: item.title,
+                                            price: item.price,
+                                            image: item.image
+                                          });
+                                          setReviewRating(5);
+                                          setReviewComment("");
+                                        }}
+                                        style={{
+                                          padding: "5px 12px",
+                                          backgroundColor: "#d4be82",
+                                          color: "#1e0012",
+                                          border: "none",
+                                          borderRadius: "4px",
+                                          fontSize: "12px",
+                                          fontWeight: "600",
+                                          cursor: "pointer",
+                                          fontFamily: "inherit",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: "4px"
+                                        }}
+                                      >
+                                        ⭐ Write Review
+                                      </button>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              );
+                            })}
+
+                            {/* Footer */}
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "12px" }}>
                               <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)" }}>
-                                {ord.shippingAddress && (
-                                  <span>Shipping to: <strong>{ord.shippingAddress.fullName}</strong> ({ord.shippingAddress.city})</span>
-                                )}
+                                {ord.shippingAddress && <span>Shipping to: <strong>{ord.shippingAddress.fullName}</strong> ({ord.shippingAddress.city})</span>}
                               </div>
-                              <div style={{ fontSize: "16px", fontWeight: "bold", color: "white" }}>
-                                Total: <span style={{ color: "#4cd137" }}>LKR {ord.totalAmount ? Number(ord.totalAmount).toFixed(2) : "0.00"}</span>
+                              <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                                {/* Cancel button — only for Pending (COD) */}
+                                {isCancellable && (
+                                  <button onClick={() => handleCancelOrder(ord._id)} disabled={actionLoading}
+                                    style={{ padding: "7px 14px", backgroundColor: "transparent", color: "#e74c3c", border: "1px solid #e74c3c", borderRadius: "4px", fontSize: "12px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>
+                                    🚫 Cancel Order
+                                  </button>
+                                )}
+                                {/* Return button — only for Delivered */}
+                                {isDelivered && (
+                                  <button onClick={() => { setReturnModalOrderId(ord._id); setReturnReason(""); }} disabled={actionLoading}
+                                    style={{ padding: "7px 14px", backgroundColor: "transparent", color: "#9b59b6", border: "1px solid #8e44ad", borderRadius: "4px", fontSize: "12px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>
+                                    ↩️ Request Return
+                                  </button>
+                                )}
+                                <div style={{ fontSize: "15px", fontWeight: "bold", color: "white" }}>
+                                  Total: <span style={{ color: "#4cd137" }}>LKR {ord.totalAmount ? Number(ord.totalAmount).toFixed(2) : "0.00"}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div style={{ textAlign: "center", color: "rgba(255,255,255,0.6)", padding: "40px 0" }}>
-                        No orders found in this section.
-                      </div>
-                    )}
-                  </>
-                );
-              })()
-            )}
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: "center", color: "rgba(255,255,255,0.6)", padding: "40px 0" }}>No orders found in this section.</div>
+                  )}
+                </>
+              );
+            })()}
           </>
         )}
 
@@ -759,24 +879,312 @@ const ManageAccount = () => {
           </>
         )}
 
-        {/* Returns section */}
-        {activeSection === "returns" && (
-          <>
-            <h2 style={mainTitle}>My Returns</h2>
-            <div style={comingSoon}>↩️ No return requests found.</div>
-          </>
-        )}
+        {/* My Returns section */}
+        {activeSection === "returns" && (() => {
+          const returnOrders = userOrders.filter(o => (o.status || "").includes("Return"));
+          return (
+            <>
+              <h2 style={mainTitle}>My Returns</h2>
+              {returnOrders.length === 0 ? (
+                <div style={{ ...comingSoon, fontSize: "15px" }}>↩️ You have no return requests.<br /><span style={{ fontSize: "13px", opacity: 0.6 }}>Returns can be requested from the Delivered tab in My Orders.</span></div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                  {returnOrders.map((ord, idx) => (
+                    <div key={ord._id || idx} style={{ backgroundColor: "rgba(142,68,173,0.08)", border: "1px solid rgba(142,68,173,0.4)", borderRadius: "8px", padding: "20px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                        <div>
+                          <span style={{ fontSize: "14px", fontWeight: "600", color: "#d4be82" }}>🛍️ Bencham Collection</span>
+                          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginLeft: "10px" }}>
+                            #{ord._id ? ord._id.slice(-8).toUpperCase() : `ORD-${idx+1}`}
+                          </span>
+                        </div>
+                        <span style={{ backgroundColor: "rgba(142,68,173,0.2)", color: "#9b59b6", border: "1px solid #8e44ad", fontSize: "12px", fontWeight: "600", padding: "3px 10px", borderRadius: "12px" }}>
+                          ↩️ Return Requested
+                        </span>
+                      </div>
+                      {ord.returnReason && (
+                        <div style={{ padding: "10px 14px", backgroundColor: "rgba(142,68,173,0.1)", borderLeft: "3px solid #8e44ad", borderRadius: "4px", fontSize: "13px", color: "#c39bd3", marginBottom: "12px" }}>
+                          <strong>Reason:</strong> {ord.returnReason}
+                        </div>
+                      )}
+                      {ord.returnRequestedAt && (
+                        <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: "0 0 12px" }}>
+                          Requested on: {new Date(ord.returnRequestedAt).toLocaleDateString()}
+                        </p>
+                      )}
+                      {ord.items && ord.items.map((item, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+                          {item.image && <img src={item.image} alt={item.title} style={{ width: "55px", height: "55px", borderRadius: "6px", objectFit: "cover" }} />}
+                          <div style={{ flex: 1 }}>
+                            <p style={{ margin: 0, fontSize: "14px", color: "white", fontWeight: "500" }}>{item.title}</p>
+                            <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Qty: {item.quantity} · LKR {(item.price * item.quantity).toFixed(2)}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", justifyContent: "flex-end", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "10px", marginTop: "8px" }}>
+                        <span style={{ fontSize: "14px", fontWeight: "600", color: "white" }}>Total: <span style={{ color: "#9b59b6" }}>LKR {Number(ord.totalAmount).toFixed(2)}</span></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
 
-        {/* Cancellations section */}
-        {activeSection === "cancellations" && (
+        {/* My Cancellations section */}
+        {activeSection === "cancellations" && (() => {
+          const cancelledOrders = userOrders.filter(o => (o.status || "").includes("Cancelled"));
+          return (
+            <>
+              <h2 style={mainTitle}>My Cancellations</h2>
+              {cancelledOrders.length === 0 ? (
+                <div style={{ ...comingSoon, fontSize: "15px" }}>🚫 You have no cancelled orders.</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                  {cancelledOrders.map((ord, idx) => (
+                    <div key={ord._id || idx} style={{ backgroundColor: "rgba(192,57,43,0.06)", border: "1px solid rgba(192,57,43,0.35)", borderRadius: "8px", padding: "20px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                        <div>
+                          <span style={{ fontSize: "14px", fontWeight: "600", color: "#d4be82" }}>🛍️ Bencham Collection</span>
+                          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginLeft: "10px" }}>
+                            #{ord._id ? ord._id.slice(-8).toUpperCase() : `ORD-${idx+1}`} · Ordered {new Date(ord.createdAt || Date.now()).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <span style={{ backgroundColor: "rgba(192,57,43,0.2)", color: "#e74c3c", border: "1px solid #c0392b", fontSize: "12px", fontWeight: "600", padding: "3px 10px", borderRadius: "12px" }}>
+                          🚫 Cancelled
+                        </span>
+                      </div>
+                      {ord.cancelledAt && (
+                        <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: "0 0 12px" }}>
+                          Cancelled on: {new Date(ord.cancelledAt).toLocaleDateString()}
+                        </p>
+                      )}
+                      {ord.paymentMethod && !ord.paymentMethod.includes("COD") && !ord.paymentMethod.includes("Cash") && (
+                        <div style={{ padding: "10px 14px", backgroundColor: "rgba(243,156,18,0.1)", borderLeft: "3px solid #f39c12", borderRadius: "4px", fontSize: "13px", color: "#f39c12", marginBottom: "12px" }}>
+                          💳 Refund of <strong>LKR {Number(ord.totalAmount).toFixed(2)}</strong> will be processed within 5–10 business days.
+                        </div>
+                      )}
+                      {ord.items && ord.items.map((item, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+                          {item.image && <img src={item.image} alt={item.title} style={{ width: "55px", height: "55px", borderRadius: "6px", objectFit: "cover", opacity: 0.7 }} />}
+                          <div style={{ flex: 1 }}>
+                            <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.7)", fontWeight: "500", textDecoration: "line-through" }}>{item.title}</p>
+                            <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>Qty: {item.quantity} · LKR {(item.price * item.quantity).toFixed(2)}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", justifyContent: "flex-end", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "10px", marginTop: "8px" }}>
+                        <span style={{ fontSize: "14px", fontWeight: "600", color: "rgba(255,255,255,0.5)" }}>Total: <span style={{ color: "#e74c3c", textDecoration: "line-through" }}>LKR {Number(ord.totalAmount).toFixed(2)}</span></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
+
+        {/* My Reviews section */}
+        {(activeSection === "My Reviews" || activeSection === "reviews") && (
           <>
-            <h2 style={mainTitle}>My Cancellations</h2>
-            <div style={comingSoon}>❌ No cancellations found.</div>
+            <h2 style={mainTitle}>My Reviews</h2>
+            {userReviews.length === 0 ? (
+              <div style={{
+                backgroundColor: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(173,149,81,0.25)",
+                borderRadius: "8px",
+                padding: "40px",
+                textAlign: "center",
+                color: "rgba(255,255,255,0.6)",
+                fontSize: "14px",
+                marginTop: "15px"
+              }}>
+                ⭐ You have not submitted any reviews yet.<br />
+                <span style={{ fontSize: "13px", opacity: 0.6 }}>Reviews can be submitted for delivered items under My Orders.</span>
+                <div style={{ marginTop: "18px" }}>
+                  <button
+                    onClick={() => {
+                      setActiveSection("orders");
+                      setOrderTab("delivered");
+                    }}
+                    style={{
+                      padding: "10px 22px",
+                      backgroundColor: "#d4be82",
+                      color: "#1e0012",
+                      fontWeight: "600",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontFamily: "inherit"
+                    }}
+                  >
+                    View Delivered Orders to Review
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {userReviews.map((rev, idx) => (
+                  <div key={rev._id || idx} style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(212,190,130,0.3)", borderRadius: "8px", padding: "18px", display: "flex", gap: "15px", alignItems: "flex-start" }}>
+                    {rev.productImage && (
+                      <img src={rev.productImage} alt={rev.productTitle} style={{ width: "65px", height: "65px", borderRadius: "8px", objectFit: "cover" }} />
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                        <h4 style={{ margin: 0, fontSize: "15px", color: "#d4be82", fontWeight: "600" }}>{rev.productTitle || "Gemstone Product"}</h4>
+                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                          {new Date(rev.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {/* Rating Stars */}
+                      <div style={{ display: "flex", gap: "2px", marginBottom: "8px" }}>
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <span key={star} style={{ color: star <= rev.rating ? "#f1c40f" : "#4a4a4a", fontSize: "16px" }}>★</span>
+                        ))}
+                      </div>
+                      <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: "1.4" }}>
+                        "{rev.comment}"
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
       </main>
+
+      {/* ── Return Reason Modal ──────────────────────────────────────────────── */}
+      {returnModalOrderId && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}>
+          <div style={{ backgroundColor: "#1e0012", border: "1px solid rgba(142,68,173,0.5)", borderRadius: "12px", padding: "30px", width: "420px", maxWidth: "90vw" }}>
+            <h3 style={{ color: "#d4be82", margin: "0 0 8px", fontSize: "18px" }}>↩️ Request a Return</h3>
+            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", margin: "0 0 20px" }}>Please tell us why you want to return this item. Our team will contact you within 2â€“3 business days.</p>
+            <textarea
+              value={returnReason}
+              onChange={e => setReturnReason(e.target.value)}
+              placeholder="e.g. Product damaged, Wrong item received, Changed my mind..."
+              rows={4}
+              style={{ width: "100%", padding: "12px", backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(142,68,173,0.4)", borderRadius: "6px", color: "white", fontSize: "14px", fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }}
+            />
+            <div style={{ display: "flex", gap: "12px", marginTop: "20px", justifyContent: "flex-end" }}>
+              <button onClick={() => { setReturnModalOrderId(null); setReturnReason(""); }}
+                style={{ padding: "10px 20px", background: "transparent", border: "1px solid rgba(255,255,255,0.3)", color: "rgba(255,255,255,0.7)", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontFamily: "inherit" }}>
+                Cancel
+              </button>
+              <button onClick={handleReturnRequest} disabled={actionLoading}
+                style={{ padding: "10px 20px", backgroundColor: "#8e44ad", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontWeight: "600", fontFamily: "inherit", opacity: actionLoading ? 0.6 : 1 }}>
+                {actionLoading ? "Submitting..." : "Submit Return Request"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Write Review Modal ────────────────────────────────────────────────── */}
+      {reviewModalItem && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 99999 }}>
+          <div style={{ backgroundColor: "#1e0012", border: "1px solid rgba(212,190,130,0.5)", borderRadius: "12px", padding: "30px", width: "450px", maxWidth: "90vw", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
+            <h3 style={{ color: "#d4be82", margin: "0 0 12px", fontSize: "20px" }}>⭐ Write a Review</h3>
+            
+            {/* Product summary card */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "8px", marginBottom: "20px" }}>
+              {reviewModalItem.image && (
+                <img src={reviewModalItem.image} alt={reviewModalItem.title} style={{ width: "50px", height: "50px", borderRadius: "6px", objectFit: "cover" }} />
+              )}
+              <div>
+                <h4 style={{ margin: 0, fontSize: "14px", color: "white" }}>{reviewModalItem.title}</h4>
+                <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Order #{reviewModalItem.orderId ? reviewModalItem.orderId.slice(-8).toUpperCase() : ""}</p>
+              </div>
+            </div>
+
+            {/* Interactive Star Rating */}
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", fontSize: "13px", color: "rgba(255,255,255,0.7)", marginBottom: "8px" }}>Select Rating:</label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                {[1, 2, 3, 4, 5].map(star => {
+                  const isActive = star <= (reviewHoverRating || reviewRating);
+                  return (
+                    <span
+                      key={star}
+                      onMouseEnter={() => setReviewHoverRating(star)}
+                      onMouseLeave={() => setReviewHoverRating(0)}
+                      onClick={() => setReviewRating(star)}
+                      style={{
+                        fontSize: "30px",
+                        color: isActive ? "#f1c40f" : "#4a4a4a",
+                        cursor: "pointer",
+                        transition: "color 0.15s ease"
+                      }}
+                    >
+                      ★
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Review Comment Textarea */}
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", fontSize: "13px", color: "rgba(255,255,255,0.7)", marginBottom: "8px" }}>Your Review:</label>
+              <textarea
+                value={reviewComment}
+                onChange={e => setReviewComment(e.target.value)}
+                placeholder="Share details of your experience with this jewelry item..."
+                rows={4}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  backgroundColor: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(212,190,130,0.4)",
+                  borderRadius: "6px",
+                  color: "white",
+                  fontSize: "14px",
+                  fontFamily: "inherit",
+                  resize: "vertical",
+                  outline: "none",
+                  boxSizing: "border-box"
+                }}
+              />
+            </div>
+
+            {/* Buttons */}
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setReviewModalItem(null)}
+                style={{ padding: "10px 20px", background: "transparent", border: "1px solid rgba(255,255,255,0.3)", color: "rgba(255,255,255,0.7)", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontFamily: "inherit" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReviewSubmit}
+                disabled={submittingReview}
+                style={{ padding: "10px 22px", backgroundColor: "#d4be82", color: "#1e0012", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontWeight: "600", fontFamily: "inherit", opacity: submittingReview ? 0.6 : 1 }}
+              >
+                {submittingReview ? "Submitting..." : "Submit Review"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Toast Notification ───────────────────────────────────────────────── */}
+      {toast && (
+        <div style={{
+          position: "fixed", bottom: "30px", left: "50%", transform: "translateX(-50%)",
+          backgroundColor: toast.type === "error" ? "#c0392b" : "#27ae60",
+          color: "white", padding: "14px 24px", borderRadius: "8px",
+          fontSize: "14px", fontWeight: "500", zIndex: 99999,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.4)", maxWidth: "500px", textAlign: "center",
+          animation: "fadeIn 0.3s ease"
+        }}>
+          {toast.type === "error" ? "⚠️" : "✅"} {toast.msg}
+        </div>
+      )}
     </div>
   );
 };
 
 export default ManageAccount;
+

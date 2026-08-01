@@ -3,7 +3,7 @@ import { FaSearch } from "react-icons/fa";
 import { FaShoppingCart } from "react-icons/fa";
 import { Link } from 'react-router-dom';
 import { NavLink } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import { CartContext } from "./CartContext";
 
@@ -117,8 +117,24 @@ const Header = () => {
         width: "auto",
     };
 
-    const handleSearch = () => {
-        alert(`Searching for: ${searchTerm}`);
+    const location = useLocation();
+
+    // Sync searchTerm with URL query parameter
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const search = queryParams.get("search");
+        if (search) {
+            setSearchTerm(search);
+        }
+    }, [location.search]);
+
+    const handleSearch = (e) => {
+        if (e) e.preventDefault();
+        if (searchTerm.trim()) {
+            navigate(`/product?search=${encodeURIComponent(searchTerm.trim())}`);
+        } else {
+            navigate("/product");
+        }
     };
     const navLinkStyle = ({ isActive }) => ({
        textDecoration: isActive ? "underline" : "none",
@@ -354,10 +370,10 @@ const Header = () => {
                     
                 </ul>
             </nav>
-            <div className='search-bar' style={searchBarStyle}>
-                <input type="text" placeholder="Search" style={inputStyle} value={searchTerm} onChange={ (e) => setSearchTerm(e.target.value)}/>
-                <button style={buttonStyle} onClick={handleSearch}><FaSearch size={20} color="#cdaf5b" /></button>
-            </div>
+            <form className='search-bar' style={searchBarStyle} onSubmit={handleSearch}>
+                <input type="text" placeholder="Search jewelry..." style={inputStyle} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
+                <button type="submit" style={buttonStyle}><FaSearch size={20} color="#cdaf5b" /></button>
+            </form>
            <div className='cart' style={{ cursor: "pointer", position: "relative" }} onClick={handleCartClick}>
             <img src="/images/shopping-cart-01-svgrepo-com (1).svg" style={{height:"35px"}} alt="Cart" />
             {isLoggedIn && cartCount > 0 && (

@@ -18,9 +18,21 @@ import Cart from './components/cart';
 import Product from './components/Product';
 import ManageAccount from './components/ManageAccount';
 import OrderSuccess from './components/OrderSuccess';
+import TermsAndConditions from './components/TermsAndConditions';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import { CartProvider } from './components/CartContext';
 import { validateSession } from './components/auth';
 import './App.css';
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 function App() {
   const [showSplash, setShowSplash] = React.useState(true);
@@ -74,6 +86,7 @@ function App() {
   return (
     <CartProvider>
     <Router>
+      <ScrollToTop />
       <div className="App">
       <Header />
       <Routes>
@@ -95,6 +108,8 @@ function App() {
           } 
         />
         <Route path="/product" element={<Product />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route
           path="/manageAccount"
           element={

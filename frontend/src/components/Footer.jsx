@@ -14,9 +14,9 @@ const Footer = () => {
     flexWrap: "wrap",
   };
   const testDeco = {
-        textDecoration: "none",
-        color: "white",
-    };
+    textDecoration: "none",
+    color: "white",
+  };
 
   const contactButton = {
     backgroundColor: "#27001a", // purple button
@@ -94,9 +94,9 @@ const Footer = () => {
       <div style={bottomSection}>
         <div>
           <div className='logo' style={{ marginTop: "-38px" }}>
-                <img src="/images/logo1.png" alt="Logo" style={{ height: "200px" }} />
+            <img src="/images/logo1.png" alt="Logo" style={{ height: "200px" }} />
           </div>
-          
+
         </div>
 
 
@@ -118,27 +118,30 @@ const Footer = () => {
         <div style={column}>
           <div style={heading}>Shop with Us</div>
           <Link to="/" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
-                onMouseLeave={(e) => (e.target.style.color = "white")} >Home</Link>
+            onMouseLeave={(e) => (e.target.style.color = "white")} >Home</Link>
           <Link to="/about" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
-                onMouseLeave={(e) => (e.target.style.color = "white")} >About Us</Link>
-          <a href="#account" style={link}>My Account</a>
+            onMouseLeave={(e) => (e.target.style.color = "white")} >About Us</Link>
+          <Link to={sessionStorage.getItem("token") ? "/manageAccount" : "/login"} style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")} // hover color
+            onMouseLeave={(e) => (e.target.style.color = "white")} >My Account</Link>
         </div>
 
-        
 
-        
+
+
 
         <div style={column}>
           <div style={heading}>Quick Links</div>
-          <a href="#privacy" style={link}>Privacy Policy</a>
-          <a href="#terms" style={link}>Terms & Conditions</a>
-          
+          <Link to="/privacy" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")}
+            onMouseLeave={(e) => (e.target.style.color = "white")} >Privacy Policy</Link>
+          <Link to="/terms" style={testDeco} onMouseEnter={(e) => (e.target.style.color = "#ad9551")}
+            onMouseLeave={(e) => (e.target.style.color = "white")} >Terms &amp; Conditions</Link>
+
         </div>
       </div>
 
       {/* Copyright */}
       <div style={bottomText}>
-        © 2025 Bencham Jewellers. All Rights Reserved. 
+        © 2026 Bencham Jewellers. All Rights Reserved.
       </div>
     </footer>
   );

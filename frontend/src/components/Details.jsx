@@ -220,6 +220,31 @@ const Details = () => {
     const { cartItems, increaseQty, decreaseQty, removeFromCart } = useContext(CartContext);
     const cartItem = cartItems.find(item => item.id === id);
 
+    // ── Ratings & Reviews state ──────────────────────────────────────────────
+    const [productReviews, setProductReviews] = useState([]);
+    const [reviewStats, setReviewStats] = useState({ totalReviews: 0, averageRating: 0, starCounts: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
+    const [loadingReviews, setLoadingReviews] = useState(true);
+
+    React.useEffect(() => {
+      if (!id) return;
+      const fetchProductReviews = async () => {
+        try {
+          setLoadingReviews(true);
+          const res = await fetch(`http://localhost:3000/api/reviews/product/${id}`);
+          if (res.ok) {
+            const data = await res.json();
+            setProductReviews(data.reviews || []);
+            setReviewStats(data.stats || { totalReviews: 0, averageRating: 0, starCounts: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
+          }
+        } catch (err) {
+          console.error("Failed to fetch product reviews:", err);
+        } finally {
+          setLoadingReviews(false);
+        }
+      };
+      fetchProductReviews();
+    }, [id]);
+
     // Called when login succeeds inside the modal
     const handleModalLoginSuccess = () => {
       markPromptedToday();
@@ -435,9 +460,122 @@ const Details = () => {
       
     </h3>
   )}
-</div>
-
+    </div>
   </div>
+
+    {/* ── Product Ratings & Reviews Section ── */}
+    <div style={{
+      maxWidth: "1100px",
+      margin: "40px auto 60px",
+      padding: "30px",
+      backgroundColor: "rgba(39, 0, 26, 0.7)",
+      border: "1px solid rgba(173, 149, 81, 0.3)",
+      borderRadius: "12px",
+      color: "white",
+      fontFamily: "'Inter', sans-serif"
+    }}>
+      <h2 style={{ color: "#d4be82", marginTop: 0, marginBottom: "20px", fontSize: "22px", letterSpacing: "0.5px" }}>
+        Ratings & Reviews
+      </h2>
+
+      {loadingReviews ? (
+        <div style={{ color: "rgba(255,255,255,0.6)", padding: "20px 0" }}>Loading customer reviews...</div>
+      ) : (
+        <>
+          {/* Summary & Rating Breakdown Box */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "200px 1fr",
+            gap: "30px",
+            padding: "20px",
+            backgroundColor: "rgba(255,255,255,0.03)",
+            borderRadius: "8px",
+            border: "1px solid rgba(255,255,255,0.08)",
+            marginBottom: "30px",
+            alignItems: "center"
+          }}>
+            {/* Average Score */}
+            <div style={{ textAlign: "center", borderRight: "1px solid rgba(255,255,255,0.1)", paddingRight: "20px" }}>
+              <div style={{ fontSize: "44px", fontWeight: "bold", color: "#d4be82", lineHeight: 1 }}>
+                {reviewStats.averageRating || "0.0"}
+              </div>
+              <div style={{ fontSize: "18px", color: "#f1c40f", margin: "6px 0" }}>
+                {"★".repeat(Math.round(reviewStats.averageRating || 0)) + "☆".repeat(5 - Math.round(reviewStats.averageRating || 0))}
+              </div>
+              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>
+                {reviewStats.totalReviews} {reviewStats.totalReviews === 1 ? "Rating" : "Ratings"}
+              </div>
+            </div>
+
+            {/* Star Distribution Progress Bars */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {[5, 4, 3, 2, 1].map(star => {
+                const count = reviewStats.starCounts?.[star] || 0;
+                const pct = reviewStats.totalReviews > 0 ? (count / reviewStats.totalReviews) * 100 : 0;
+                return (
+                  <div key={star} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
+                    <span style={{ width: "35px", color: "rgba(255,255,255,0.7)" }}>{star} ★</span>
+                    <div style={{ flex: 1, height: "8px", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "4px", overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", backgroundColor: "#f1c40f", borderRadius: "4px", transition: "width 0.3s" }} />
+                    </div>
+                    <span style={{ width: "30px", textAlign: "right", color: "rgba(255,255,255,0.4)" }}>{count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Customer Reviews List */}
+          {productReviews.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {productReviews.map((rev, idx) => (
+                <div key={rev._id || idx} style={{
+                  padding: "16px",
+                  backgroundColor: "rgba(255,255,255,0.03)",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255,255,255,0.06)"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontWeight: "600", fontSize: "14px", color: "#d4be82" }}>{rev.userName}</span>
+                      <span style={{ fontSize: "10px", backgroundColor: "rgba(39,174,96,0.2)", color: "#2ecc71", border: "1px solid #27ae60", padding: "1px 6px", borderRadius: "4px" }}>
+                        ✓ Verified Buyer
+                      </span>
+                    </div>
+                    <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                      {new Date(rev.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  {/* Stars */}
+                  <div style={{ color: "#f1c40f", fontSize: "14px", marginBottom: "8px" }}>
+                    {"★".repeat(rev.rating) + "☆".repeat(5 - rev.rating)}
+                  </div>
+
+                  {/* Review Text */}
+                  <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: "1.5" }}>
+                    {rev.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{
+              textAlign: "center",
+              padding: "40px 20px",
+              backgroundColor: "rgba(255,255,255,0.02)",
+              borderRadius: "8px",
+              color: "rgba(255,255,255,0.5)",
+              fontSize: "14px"
+            }}>
+              ⭐ No reviews yet for this product.<br />
+              <span style={{ fontSize: "12px", opacity: 0.7 }}>Be the first to review this gemstone jewelry after your purchase!</span>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+
 
       {/* ── Login modal (Daraz-style popup) ── */}
       {showLoginModal && (
