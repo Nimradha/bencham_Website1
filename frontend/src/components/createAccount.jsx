@@ -5,6 +5,7 @@ import { FcGoogle } from "react-icons/fc";
 import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useGoogleLogin } from "@react-oauth/google";
+import { API_BASE_URL } from "../config";
 
 
 const CreateAccount = () => {
@@ -22,7 +23,7 @@ const CreateAccount = () => {
     const googleLogin = useGoogleLogin({
       onSuccess: async (tokenResponse) => {
         try {
-          const res = await fetch("http://localhost:3000/api/google-login", {
+          const res = await fetch(`${API_BASE_URL}/api/google-login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ access_token: tokenResponse.access_token }),
@@ -78,7 +79,7 @@ const CreateAccount = () => {
         if (!validateForm()) return;
 
         try {
-          const res = await fetch("http://localhost:3000/api/register", {
+          const res = await fetch(`${API_BASE_URL}/api/register`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

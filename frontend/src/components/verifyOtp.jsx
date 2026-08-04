@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 const VerifyOtp = () => {
   const location = useLocation();
@@ -15,7 +16,7 @@ const VerifyOtp = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:3000/api/verify-otp", {
+      const res = await fetch(`${API_BASE_URL}/api/verify-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

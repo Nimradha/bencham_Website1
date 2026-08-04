@@ -2,11 +2,22 @@ import React from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaGlobe, FaFacebook, FaInstagram, FaPinterest, FaYoutube } from 'react-icons/fa';
 import {ToastContainer, toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { API_BASE_URL } from '../config';
 
 const Contact = () => {
+  // Decode JWT to get logged-in user's email
+  const getLoggedInEmail = () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) return '';
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.email || '';
+    } catch { return ''; }
+  };
+
   const [formData, setFormData] = React.useState({
     name: '',
-    email: '',
+    email: getLoggedInEmail(),
     phone: '',
     location: '',
     message: '',
@@ -19,10 +30,13 @@ const Contact = () => {
     e.preventDefault();
     toast.info("Sending message...", {position: "top-center"});
     try {
-      const response = await fetch('http://localhost:3000/api/contact', {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/contact`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'},
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(formData),
       });
       
@@ -111,6 +125,7 @@ const Contact = () => {
     fontFamily: "'Montserrat', sans-serif",
     marginRight: '10px',
     background: '#27001a',
+    color: 'white',
   };
 
   const formButton = {

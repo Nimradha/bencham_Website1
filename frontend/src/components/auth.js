@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "../config";
+
 export const isLoggedIn = () => {
   const token = sessionStorage.getItem("token");
   return token !== null;
@@ -13,7 +15,7 @@ export const validateSession = async () => {
   if (!token) return; // no session to validate
 
   try {
-    const res = await fetch("http://localhost:3000/api/me", {
+    const res = await fetch(`${API_BASE_URL}/api/me`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 

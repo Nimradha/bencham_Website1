@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AddressFormModal from "./AddressFormModal";
 import { CartContext } from "./CartContext";
+import { API_BASE_URL } from "../config";
 
 const Buy = () => {
   const location = useLocation();
@@ -45,7 +46,7 @@ const Buy = () => {
         const token = sessionStorage.getItem("token");
         if (!token) return;
 
-        const res = await fetch("http://localhost:3000/api/address", {
+        const res = await fetch(`${API_BASE_URL}/api/address`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -114,7 +115,7 @@ const Buy = () => {
       };
 
       try {
-        const res = await fetch("http://localhost:3000/api/orders", {
+        const res = await fetch(`${API_BASE_URL}/api/orders`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -154,7 +155,7 @@ const Buy = () => {
 
     // ── Handle Online Payment via PayHere Gateway ──────────────────────────────
     try {
-      const res = await fetch("http://localhost:3000/api/payhere/generate-hash", {
+      const res = await fetch(`${API_BASE_URL}/api/payhere/generate-hash`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -199,7 +200,7 @@ const Buy = () => {
           };
 
           try {
-            const saveRes = await fetch("http://localhost:3000/api/orders", {
+            const saveRes = await fetch(`${API_BASE_URL}/api/orders`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

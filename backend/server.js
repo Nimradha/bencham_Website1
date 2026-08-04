@@ -7,13 +7,18 @@ import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import https from 'https';
+import dotenv from 'dotenv';
 
+dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect('mongodb+srv://benchamMores:123@cluster0.96s9z9n.mongodb.net/?appName=Cluster0')
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://benchamMores:123@cluster0.96s9z9n.mongodb.net/?appName=Cluster0';
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+
+mongoose.connect(MONGO_URI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error(err));
 
@@ -111,7 +116,7 @@ const authMiddleware = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, "your_jwt_secret"); // Use a strong secret
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = { id: decoded.id }; // attach user info to request
     next();
   } catch (err) {
@@ -122,10 +127,10 @@ const authMiddleware = (req, res, next) => {
 
 
 // ── Email Transporter (Brevo SMTP) ───────────────────────────────────────────
-// Sign up free at https://www.brevo.com → Settings → SMTP & API → copy credentials below
-const BREVO_SMTP_LOGIN = 'b37923001@smtp-brevo.com';
-const BREVO_SMTP_KEY   = 'xsmtpsib-c502ec3a700482a107197047774e55391f98e3c8e581fbd80390c87889eddd23-K8PJM4DmZhwDS9LT';
-const STORE_EMAIL      = 'nimradhanethmini2002@gmail.com';
+const BREVO_SMTP_LOGIN = process.env.BREVO_SMTP_LOGIN || 'b37923001@smtp-brevo.com';
+const BREVO_SMTP_KEY   = process.env.BREVO_SMTP_KEY   || 'xsmtpsib-c502ec3a700482a107197047774e55391f98e3c8e581fbd80390c87889eddd23-K8PJM4DmZhwDS9LT';
+const STORE_EMAIL      = process.env.STORE_EMAIL      || 'nimradhanethmini2002@gmail.com';
+const OWNER_EMAIL      = process.env.OWNER_EMAIL      || 'fonseka.chamath@gmail.com';
 
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',
@@ -144,15 +149,26 @@ app.post('/api/contact', async (req, res) => {
         const contact = new Contact(req.body);
         await contact.save();
 
+        // Extract user email from JWT token if provided
+        let userEmail = req.body.email || '';
+        const authHeader = req.headers['authorization'];
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+                if (decoded.email) userEmail = decoded.email;
+            } catch (e) { /* use form email as fallback */ }
+        }
+
         const mailOptions = {
-          from: '"Bencham Website" <nimradhanethmini2002@gmail.com>', // sender address
-          to: 'fonseka.chamath@gmail.com', // list of receivers
-          subject: 'New Contact Form Submission', // Subject line
-          text: `You have a new contact form submission:\n\nName: ${req.body.name}\nEmail: ${req.body.email}\nPhone: ${req.body.phone}\nLocation: ${req.body.location}\nMessage: ${req.body.message}` // plain text body
+          from: `"Bencham Website" <${STORE_EMAIL}>`,
+          to: OWNER_EMAIL,
+          replyTo: userEmail || undefined,   // ← clicking Reply goes to the customer
+          subject: `New Message from ${req.body.name} (${userEmail})`,
+          text: `You have a new contact form submission.\n\nFrom: ${req.body.name}\nEmail: ${userEmail}\nPhone: ${req.body.phone}\nLocation: ${req.body.location}\n\nMessage:\n${req.body.message}\n\n──────────────────────────\nReply directly to this email to respond to the customer.`
         };
         await transporter.sendMail(mailOptions);
         res.status(200).json({ message: 'Message sent successfully!' });
-    }catch (err) {
+    } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Failed to send message.' });
     }
@@ -198,7 +214,7 @@ app.post("/api/google-login", async (req, res) => {
     }
 
     // Issue an app JWT
-    const token = jwt.sign({ id: user._id, email: user.email }, "your_jwt_secret", { expiresIn: "7d" });
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
     res.json({ token, name: user.name, email: user.email });
 
   } catch (error) {
@@ -221,7 +237,7 @@ app.post("/api/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: user._id, email: user.email }, "your_jwt_secret", {
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -239,7 +255,7 @@ app.get('/api/me', (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'No token' });
   try {
-    const decoded = jwt.verify(token, 'your_jwt_secret');
+    const decoded = jwt.verify(token, JWT_SECRET);
     res.json({ id: decoded.id, email: decoded.email });
   } catch (err) {
     res.status(401).json({ message: 'Invalid or expired token' });
@@ -266,17 +282,50 @@ app.post('/api/forgot-password', async (req, res) => {
       await user.save();
 
      const mailOptions = {
-       from: '"Bencham Website" <nimradhanethmini2002@gmail.com>',
-       to: 'nimradhanethmini2002@gmail.com',
+       from: `"Bencham Website" <${STORE_EMAIL}>`,
+       to: email,
        subject: "Password Reset Request",
-       text: `Hi ${user.name},\n\nUse this token to reset your password: ${resetToken}\n\nOr click this link: http://localhost:3001/reset-password?token=${resetToken}\n\nIf you didn't request a password reset, ignore this email.`,
+       text: `Hi ${user.name},\n\nUse this token to reset your password: ${resetToken}\n\nIf you didn't request a password reset, ignore this email.`,
      };
 
      await transporter.sendMail(mailOptions);
      console.log(`Password reset token for ${email}: ${resetToken}`);
 
-     //await transporter.sendMail(mailOptions);
      res.status(200).json({ message: 'OTP sent successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/api/register", async (req, res) => {
+  try {
+    const { firstName, lastName, email, password } = req.body;
+
+    // 1. Validation
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // 2. Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
+    }
+
+    // 3. Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 4. Save user
+    const newUser = new User({
+      name: `${firstName} ${lastName}`,
+      email,
+      password: hashedPassword,
+    });
+
+    await newUser.save();
+    const token = jwt.sign({ id: newUser._id }, JWT_SECRET, { expiresIn: "7d" });
+    res.status(201).json({ message: "Account created successfully" , token});
      //try {
         //let info = await transporter.sendMail(mailOptions);
         //console.log("Email sent: ", info.response);
@@ -813,7 +862,7 @@ const sendCancellationEmail = async (order, recipientEmail) => {
     </div>`;
 
   await transporter.sendMail({
-    from: '"Bencham Jewellers" <nimradhanethmini2002@gmail.com>',
+    from: `"Bencham Jewellers" <${STORE_EMAIL}>`,
     to: recipientEmail,
     bcc: STORE_EMAIL,
     subject: `Order Cancelled: Bencham Jewellers #${shortId}`,
@@ -852,7 +901,7 @@ const sendReturnRequestEmail = async (order, recipientEmail) => {
     </div>`;
 
   await transporter.sendMail({
-    from: '"Bencham Jewellers" <nimradhanethmini2002@gmail.com>',
+    from: `"Bencham Jewellers" <${STORE_EMAIL}>`,
     to: recipientEmail,
     bcc: STORE_EMAIL,
     subject: `Return Request Received: Bencham Jewellers #${shortId}`,
@@ -864,6 +913,8 @@ const sendReturnRequestEmail = async (order, recipientEmail) => {
 // PayHere Configuration (Sandbox User Credentials)
 const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID || "1235278";
 const PAYHERE_MERCHANT_SECRET = process.env.PAYHERE_MERCHANT_SECRET || "MTU0NTEwMjc4NjI4NDk2MzMyOTQxNDIyOTQwMTUzODk0MzIyMjAw";
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3000";
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
 function generatePayHereHash(merchantId, orderId, amount, currency, merchantSecret) {
   const formattedAmount = Number(amount).toFixed(2);
@@ -891,9 +942,9 @@ app.post("/api/payhere/generate-hash", authMiddleware, async (req, res) => {
     res.json({
       sandbox: true,
       merchant_id: PAYHERE_MERCHANT_ID,
-      return_url: "http://localhost:3000/order-success",
-      cancel_url: "http://localhost:3000/buy",
-      notify_url: "http://localhost:3000/api/payhere/notify",
+      return_url: `${CLIENT_URL}/order-success`,
+      cancel_url: `${CLIENT_URL}/buy`,
+      notify_url: `${BACKEND_URL}/api/payhere/notify`,
       order_id: orderId,
       items: items && items.length > 0 ? items.map(i => i.title).join(", ") : "Bencham Gemstone Purchase",
       amount: Number(amount).toFixed(2),
@@ -957,7 +1008,7 @@ app.post("/api/payhere/notify", async (req, res) => {
       // Send Email Receipt using Nodemailer if email available
       if (custom_1) {
         const mailOptions = {
-          from: '"Bencham Gemstones" <nimradhanethmini2002@gmail.com>',
+          from: `"Bencham Gemstones" <${STORE_EMAIL}>`,
           to: custom_1,
           subject: `Order Confirmation - #${order_id}`,
           html: `
@@ -982,6 +1033,7 @@ app.post("/api/payhere/notify", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });

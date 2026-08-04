@@ -5,6 +5,7 @@ import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import { useGoogleLogin } from "@react-oauth/google";
+import { API_BASE_URL } from "../config";
 
 
 const Login = () => {
@@ -17,7 +18,7 @@ const Login = () => {
     return;
    }
     try {
-      const res = await fetch("http://localhost:3000/api/login", {
+      const res = await fetch(`${API_BASE_URL}/api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,7 +47,7 @@ const Login = () => {
   const login = useGoogleLogin({
   onSuccess: async (tokenResponse) => {
     try {
-      const res = await fetch("http://localhost:3000/api/google-login", {
+      const res = await fetch(`${API_BASE_URL}/api/google-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ access_token: tokenResponse.access_token }),

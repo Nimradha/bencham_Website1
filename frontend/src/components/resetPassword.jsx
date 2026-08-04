@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 const ResetPassword = () => {
   const location = useLocation();
@@ -19,7 +20,7 @@ const ResetPassword = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/reset-password", {
+      const res = await fetch(`${API_BASE_URL}/api/reset-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

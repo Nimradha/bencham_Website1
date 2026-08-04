@@ -7,6 +7,7 @@ import "../App.css";
 import { MdOpenInFull } from "react-icons/md";
 import { isLoggedIn } from "./auth";
 import LoginModal from "./LoginModal";
+import { API_BASE_URL } from "../config";
 
 
 export const detailsData = {
@@ -230,7 +231,7 @@ const Details = () => {
       const fetchProductReviews = async () => {
         try {
           setLoadingReviews(true);
-          const res = await fetch(`http://localhost:3000/api/reviews/product/${id}`);
+          const res = await fetch(`${API_BASE_URL}/api/reviews/product/${id}`);
           if (res.ok) {
             const data = await res.json();
             setProductReviews(data.reviews || []);

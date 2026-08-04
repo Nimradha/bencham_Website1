@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API_BASE_URL } from "../config";
 
 /**
  * AddressFormModal
@@ -22,8 +23,8 @@ const AddressFormModal = ({ onClose, onSaved, initialData = null }) => {
     if (!token) { alert("Please login first"); return; }
 
     const url    = isEditing
-      ? `http://localhost:3000/api/address/${initialData._id}`
-      : "http://localhost:3000/api/address";
+      ? `${API_BASE_URL}/api/address/${initialData._id}`
+      : `${API_BASE_URL}/api/address`;
     const method = isEditing ? "PUT" : "POST";
 
     try {

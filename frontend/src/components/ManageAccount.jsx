@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import AddressFormModal from "./AddressFormModal";
+import { API_BASE_URL } from "../config";
 
 const ManageAccount = () => {
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ const ManageAccount = () => {
       try {
         const token = sessionStorage.getItem("token");
         if (!token) return;
-        const res = await fetch("http://localhost:3000/api/address", {
+        const res = await fetch(`${API_BASE_URL}/api/address`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -79,7 +80,7 @@ const ManageAccount = () => {
         const token = sessionStorage.getItem("token");
         if (!token) return;
         setLoadingOrders(true);
-        const res = await fetch("http://localhost:3000/api/orders", {
+        const res = await fetch(`${API_BASE_URL}/api/orders`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -100,8 +101,8 @@ const ManageAccount = () => {
         const token = sessionStorage.getItem("token");
         if (!token) return;
         const [resRev, resKeys] = await Promise.all([
-          fetch("http://localhost:3000/api/reviews/user", { headers: { Authorization: `Bearer ${token}` } }),
-          fetch("http://localhost:3000/api/reviews/user/submitted", { headers: { Authorization: `Bearer ${token}` } })
+          fetch(`${API_BASE_URL}/api/reviews/user`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/api/reviews/user/submitted`, { headers: { Authorization: `Bearer ${token}` } })
         ]);
         if (resRev.ok) {
           const dataRev = await resRev.json();
@@ -131,7 +132,7 @@ const ManageAccount = () => {
     setActionLoading(true);
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`http://localhost:3000/api/orders/${orderId}/cancel`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -156,7 +157,7 @@ const ManageAccount = () => {
     setActionLoading(true);
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`http://localhost:3000/api/orders/${returnModalOrderId}/return`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${returnModalOrderId}/return`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ reason: returnReason })
@@ -187,7 +188,7 @@ const ManageAccount = () => {
     setSubmittingReview(true);
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch("http://localhost:3000/api/reviews", {
+      const res = await fetch(`${API_BASE_URL}/api/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
