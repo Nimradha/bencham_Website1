@@ -182,25 +182,16 @@ app.post("/api/google-login", async (req, res) => {
       return res.status(400).json({ message: "Access token is required" });
     }
 
-    // Fetch the user's Google profile using Node's built-in https module
-    const profile = await new Promise((resolve, reject) => {
-      https.get(
-        `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`,
-        (response) => {
-          if (response.statusCode !== 200) {
-            reject(new Error(`Google API returned status ${response.statusCode}`));
-            return;
-          }
-          let data = '';
-          response.on('data', (chunk) => { data += chunk; });
-          response.on('end', () => {
-            try { resolve(JSON.parse(data)); }
-            catch (e) { reject(new Error('Failed to parse Google response')); }
-          });
-        }
-      ).on('error', reject);
+    // Fetch the user's Google profile
+    const googleRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${access_token}` }
     });
 
+    if (!googleRes.ok) {
+      return res.status(400).json({ message: "Failed to verify token with Google" });
+    }
+
+    const profile = await googleRes.json();
     const { email, name } = profile;
     if (!email) {
       return res.status(400).json({ message: "Could not retrieve email from Google" });
