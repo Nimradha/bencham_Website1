@@ -12,23 +12,14 @@ const handleImageClick = (id) => {
    };
   return (
     <section className="featured-section">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <h2 style={{textAlign:"left",padding:"0 100px",color:"white"}}>Featured Masterpieces</h2>
-         <span
-          style={{
-          color: "#e0c200",
-          cursor: "pointer",
-          fontWeight: "500",
-          marginRight: "100px",
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-         }}
+      <div className="featured-header">
+        <h2>Featured Masterpieces</h2>
+        <span
+          className="featured-explore"
           onClick={() => navigate("/product")}
         >
           Explore All <FaArrowRight size={12}/>
         </span>
-
       </div>
       
       <div className="featured-grid">
