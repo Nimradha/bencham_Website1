@@ -116,9 +116,11 @@ textarea:-webkit-autofill:focus {
   background: rgba(255,255,255,0.05);
   padding: 25px;
   border-radius: 8px;
-  width: 400px;
+  width: 100%;
+  max-width: 400px;
   margin-right: 40px;
-  height: 300px;
+  box-sizing: border-box;
+  overflow: visible;
 }
 .summary-row{
   flex: 1;
