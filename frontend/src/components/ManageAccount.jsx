@@ -416,6 +416,14 @@ const ManageAccount = () => {
           .account-main {
             width: 100% !important;
           }
+          .addr-table-header { display: none !important; }
+          .addr-table-row { display: none !important; }
+          .addr-mobile-card { display: block !important; }
+        }
+        @media (min-width: 651px) {
+          .addr-mobile-card { display: none !important; }
+          .addr-table-header { display: grid !important; }
+          .addr-table-row { display: grid !important; }
         }
       `}</style>
       {/* ── Sidebar ── */}
@@ -527,9 +535,9 @@ const ManageAccount = () => {
         {activeSection === "address" && (
           <>
             {/* Title row */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
+            <div style={{ flexWrap: "wrap", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", gap: "10px" }}>
               <h2 style={mainTitle}>Address Book</h2>
-              <div style={{ display: "flex", gap: "20px" }}>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                 <span style={{ fontSize: "13px", color: "#00a99d", cursor: "pointer" }}>Make default shipping address</span>
                 <span style={{ color: "rgba(255,255,255,0.3)" }}>|</span>
                 <span style={{ fontSize: "13px", color: "#00a99d", cursor: "pointer" }}>Make default billing address</span>
@@ -548,8 +556,8 @@ const ManageAccount = () => {
 
               {savedAddresses.length > 0 ? (
                 <>
-                  {/* Table header */}
-                  <div style={{
+                  {/* Table header — hidden on mobile */}
+                  <div className="addr-table-header" style={{
                     display: "grid",
                     gridTemplateColumns: "1.2fr 2fr 1.5fr 1.2fr 1.5fr 80px",
                     padding: "14px 24px",
@@ -567,72 +575,72 @@ const ManageAccount = () => {
                     <span></span>
                   </div>
 
-                  {/* Address rows */}
+                  {/* Address rows — desktop table / mobile cards */}
                   {savedAddresses.map((addr, idx) => (
-                    <div key={addr._id || idx} style={{
-                      display: "grid",
-                      gridTemplateColumns: "1.2fr 2fr 1.5fr 1.2fr 1.5fr 80px",
-                      padding: "18px 24px",
-                      borderBottom: idx < savedAddresses.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
-                      alignItems: "center",
-                      fontSize: "13px",
-                      color: "white",
-                    }}>
-                      {/* Full Name */}
-                      <span style={{ fontWeight: "500" }}>{addr.fullName}</span>
-
-                      {/* Address + label badge */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        {addr.label && (
-                          <span style={{
-                            backgroundColor: addr.label === "home" ? "#f97316" : "#3b82f6",
-                            color: "white",
-                            fontSize: "10px",
-                            fontWeight: "700",
-                            padding: "2px 8px",
-                            borderRadius: "3px",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.5px",
-                            flexShrink: 0,
-                          }}>
-                            {addr.label}
-                          </span>
-                        )}
-                        <span style={{ color: "rgba(255,255,255,0.7)" }}>{addr.addressLine}</span>
+                    <>
+                      {/* Desktop row */}
+                      <div className="addr-table-row" key={addr._id || idx} style={{
+                        display: "grid",
+                        gridTemplateColumns: "1.2fr 2fr 1.5fr 1.2fr 1.5fr 80px",
+                        padding: "18px 24px",
+                        borderBottom: idx < savedAddresses.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                        alignItems: "center",
+                        fontSize: "13px",
+                        color: "white",
+                      }}>
+                        <span style={{ fontWeight: "500" }}>{addr.fullName}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          {addr.label && (
+                            <span style={{
+                              backgroundColor: addr.label === "home" ? "#f97316" : "#3b82f6",
+                              color: "white", fontSize: "10px", fontWeight: "700",
+                              padding: "2px 8px", borderRadius: "3px",
+                              textTransform: "uppercase", letterSpacing: "0.5px", flexShrink: 0,
+                            }}>{addr.label}</span>
+                          )}
+                          <span style={{ color: "rgba(255,255,255,0.7)" }}>{addr.addressLine}</span>
+                        </div>
+                        <span style={{ color: "rgba(255,255,255,0.6)" }}>{[addr.province, addr.district, addr.city].filter(Boolean).join(" - ")}</span>
+                        <span style={{ color: "rgba(255,255,255,0.7)" }}>{addr.phone}</span>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)" }}>Default Shipping Address</span>
+                          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)" }}>Default Billing Address</span>
+                        </div>
+                        <button onClick={() => { setEditingAddress(addr); setShowAddressModal(true); }}
+                          style={{ background: "none", border: "none", color: "#00a99d", fontSize: "13px", fontWeight: "600", cursor: "pointer", letterSpacing: "0.5px", fontFamily: "inherit", padding: 0 }}>
+                          EDIT
+                        </button>
                       </div>
 
-                      {/* Province - District - City */}
-                      <span style={{ color: "rgba(255,255,255,0.6)" }}>
-                        {[addr.province, addr.district, addr.city].filter(Boolean).join(" - ")}
-                      </span>
-
-                      {/* Phone */}
-                      <span style={{ color: "rgba(255,255,255,0.7)" }}>{addr.phone}</span>
-
-                      {/* Status */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)" }}>Default Shipping Address</span>
-                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)" }}>Default Billing Address</span>
+                      {/* Mobile card */}
+                      <div className="addr-mobile-card" key={(addr._id || idx) + "-mobile"} style={{
+                        padding: "16px",
+                        borderBottom: idx < savedAddresses.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
+                        fontSize: "13px",
+                        color: "white",
+                      }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            {addr.label && (
+                              <span style={{
+                                backgroundColor: addr.label === "home" ? "#f97316" : "#3b82f6",
+                                color: "white", fontSize: "10px", fontWeight: "700",
+                                padding: "2px 8px", borderRadius: "3px",
+                                textTransform: "uppercase",
+                              }}>{addr.label}</span>
+                            )}
+                            <span style={{ fontWeight: "600" }}>{addr.fullName}</span>
+                          </div>
+                          <button onClick={() => { setEditingAddress(addr); setShowAddressModal(true); }}
+                            style={{ background: "none", border: "none", color: "#00a99d", fontSize: "13px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>
+                            EDIT
+                          </button>
+                        </div>
+                        <p style={{ color: "rgba(255,255,255,0.7)", margin: "4px 0" }}>{addr.addressLine}</p>
+                        <p style={{ color: "rgba(255,255,255,0.6)", margin: "4px 0" }}>{[addr.province, addr.district, addr.city].filter(Boolean).join(" - ")}</p>
+                        <p style={{ color: "rgba(255,255,255,0.7)", margin: "4px 0" }}>📞 {addr.phone}</p>
                       </div>
-
-                      {/* EDIT */}
-                      <button
-                        onClick={() => { setEditingAddress(addr); setShowAddressModal(true); }}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#00a99d",
-                          fontSize: "13px",
-                          fontWeight: "600",
-                          cursor: "pointer",
-                          letterSpacing: "0.5px",
-                          fontFamily: "inherit",
-                          padding: 0,
-                        }}
-                      >
-                        EDIT
-                      </button>
-                    </div>
+                    </>
                   ))}
                 </>
               ) : (
