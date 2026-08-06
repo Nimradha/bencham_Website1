@@ -13,7 +13,12 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.options('*', cors());
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://benchamMores:123@cluster0.96s9z9n.mongodb.net/?appName=Cluster0';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
@@ -188,7 +193,9 @@ app.post("/api/google-login", async (req, res) => {
     });
 
     if (!googleRes.ok) {
-      return res.status(400).json({ message: "Failed to verify token with Google" });
+      const errBody = await googleRes.text();
+      console.error("Google userinfo error response:", errBody);
+      return res.status(400).json({ message: "Failed to verify token with Google: " + errBody });
     }
 
     const profile = await googleRes.json();
@@ -200,7 +207,7 @@ app.post("/api/google-login", async (req, res) => {
     // Find or create the user in MongoDB
     let user = await User.findOne({ email });
     if (!user) {
-      user = new User({ name, email, password: "" }); // no password for Google users
+      user = new User({ name: name || email.split('@')[0], email, password: "" });
       await user.save();
     }
 
@@ -209,8 +216,8 @@ app.post("/api/google-login", async (req, res) => {
     res.json({ token, name: user.name, email: user.email });
 
   } catch (error) {
-    console.error("Google login error:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Google login server error:", error);
+    res.status(500).json({ message: "Server error: " + error.message });
   }
 });
 
