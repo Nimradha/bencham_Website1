@@ -88,7 +88,7 @@ const About = () => {
         <style>{`
             @media (max-width: 600px) {
                 .about-video {
-                    max-width: 160px !important;
+                    max-width: 200px !important;
                 }
                 .about-video-4 {
                     max-width: 200px !important;
