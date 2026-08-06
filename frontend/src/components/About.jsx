@@ -23,6 +23,8 @@ const About = () => {
         fontWeight: '400',
         fontFamily: "'Montserrat', sans-serif",
         fontSize: '18px',
+        lineHeight: '2.0',
+        marginBottom: '1rem',
     };
     const textContainer = {
         flex: "1 1 280px",
@@ -33,7 +35,6 @@ const About = () => {
         width: '100%',
         maxWidth: '350px',
         height: 'auto',
-        minHeight: '200px',
         borderRadius: '12px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         objectFit: 'cover',
@@ -84,6 +85,16 @@ const About = () => {
 
     return (
         <>
+        <style>{`
+            @media (max-width: 600px) {
+                .about-video {
+                    max-width: 160px !important;
+                }
+                .about-video-4 {
+                    max-width: 200px !important;
+                }
+            }
+        `}</style>
              <div style={about}>
                 <div style={{ backgroundColor: "#27001a", padding: "2rem 5%", display: "flex", position: "relative", alignItems: "flex-start", gap: "30px", flexWrap: "wrap", boxSizing: "border-box" }}>
   
@@ -142,19 +153,19 @@ const About = () => {
 
              <section style={videoGrid}>
                 <div style={videoItem}>
-                    <video style={video} muted autoPlay loop playsInline  >
+                    <video className="about-video" style={video} muted autoPlay loop playsInline  >
                         <source src="/videos/v1.mp4" type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
                 </div>
                 <div style={videoItem}>
-                    <video style={video} muted autoPlay loop playsInline >
+                    <video className="about-video" style={video} muted autoPlay loop playsInline >
                         <source src="/videos/v2.mp4" type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
                 </div>
                 <div style={videoItem}>
-                    <video style={video} muted autoPlay loop playsInline >
+                    <video className="about-video" style={video} muted autoPlay loop playsInline >
                         <source src="/videos/v3.mp4" type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
@@ -180,7 +191,7 @@ const About = () => {
             </section>
             
             <div style={sectionStyle}>
-                <video style={video} muted autoPlay loop playsInline >
+                <video className="about-video-4" style={video} muted autoPlay loop playsInline >
                         <source src="/videos/v4.mp4" type="video/mp4" />
                         Your browser does not support the video tag.
                 </video>
