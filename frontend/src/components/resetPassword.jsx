@@ -84,8 +84,9 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: "100vh",
-    backgroundColor: "#f7f7f7",
+    minHeight: "80vh",
+    backgroundColor: "#27001a",
+    padding: "40px 20px",
   },
   card: {
     backgroundColor: "#fff",

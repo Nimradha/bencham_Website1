@@ -117,9 +117,10 @@ const CreateAccount = () => {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: "100vh",
-    backgroundColor: "#f8f9fb",
+    minHeight: "85vh",
+    backgroundColor: "#27001a",
     fontFamily: "'Inter', sans-serif",
+    padding: "40px 20px",
   };
 
   const card = {

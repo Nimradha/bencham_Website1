@@ -7,13 +7,13 @@ const ForgotPassword = () => {
   const navigate = useNavigate();
 
   const container = {
-  display: "flex",
-  justifyContent: "center",   
-  alignItems: "center",       
-  height: "100vh",         
-  backgroundColor: "#f7f7f7", 
-   padding: "0",       
-};
+    display: "flex",
+    justifyContent: "center",   
+    alignItems: "center",       
+    minHeight: "80vh",         
+    backgroundColor: "#27001a", 
+    padding: "40px 20px",       
+  };
 
 
   const card = {
