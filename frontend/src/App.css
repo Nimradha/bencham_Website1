@@ -886,3 +886,124 @@ textarea:-webkit-autofill:focus {
   }
 }
 
+/* ==========================================================================
+   MOBILE & RESPONSIVE DESIGN (Media Queries for Phones & Tablets)
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .hero-container {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+    padding: 0 20px !important;
+    text-align: center !important;
+  }
+  .hero-left, .hero-label, .hero-title, .hero-description {
+    text-align: center !important;
+  }
+  .hero-description {
+    margin: 0 auto 20px !important;
+  }
+  .hero-buttons {
+    justify-content: center !important;
+  }
+  .checkout-container {
+    flex-direction: column !important;
+    padding: 20px 15px !important;
+    gap: 20px !important;
+  }
+  .card, .summary-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  .details-container {
+    grid-template-columns: 1fr !important;
+    padding: 15px !important;
+  }
+  .why-container {
+    flex-direction: column !important;
+    gap: 30px !important;
+  }
+  .why-right {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Fix Header on mobile */
+  header, .header-container {
+    flex-direction: column !important;
+    height: auto !important;
+    padding: 15px 10px !important;
+    gap: 12px !important;
+  }
+  .nav-links, ul {
+    gap: 15px !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    padding-left: 0 !important;
+    font-size: 14px !important;
+  }
+  .search-bar {
+    width: 100% !important;
+    max-width: 320px !important;
+  }
+
+  /* Fix Form cards & Modals */
+  .modal-box {
+    width: 92% !important;
+    max-width: 480px !important;
+    padding: 20px !important;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Hero title & image on mobile */
+  .hero-title {
+    font-size: 32px !important;
+  }
+  .hero-image {
+    width: 100% !important;
+    max-width: 300px !important;
+    height: auto !important;
+  }
+
+  /* Cart & Checkout rows */
+  .cart-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .cart-right {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  /* Product grid */
+  .featured-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    padding: 0 15px !important;
+    gap: 15px !important;
+  }
+  .product-card {
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-buttons {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .btn-primary, .btn-outline {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .hero-title {
+    font-size: 26px !important;
+  }
+}
+

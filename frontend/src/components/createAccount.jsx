@@ -125,9 +125,11 @@ const CreateAccount = () => {
 
   const card = {
     backgroundColor: "rgba(255,255,255,0.05)",
-    padding: "40px",
+    padding: "30px 20px",
     borderRadius: "8px",
     width: "550px",
+    maxWidth: "92vw",
+    boxSizing: "border-box",
     boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
     textAlign: "center",
     border: "1px solid rgba(173, 149, 81, 0.6)",
@@ -135,7 +137,8 @@ const CreateAccount = () => {
   };
 
   const primaryButton = {
-    width: "48%",
+    flex: "1",
+    minWidth: "200px",
     padding: "12px",
     backgroundColor: "#d4be82",
     color: "#000",
@@ -152,7 +155,8 @@ const CreateAccount = () => {
   };
 
   const googleButton = {
-    width: "48%",
+    flex: "1",
+    minWidth: "200px",
     padding: "12px",
     backgroundColor: "rgba(255,255,255,0.1)",
     color: "white",
@@ -206,7 +210,7 @@ const CreateAccount = () => {
       <div style={card}>
         <h2 style={{ marginBottom: "25px", color: "#ad9551" }}>Create Account</h2>
 
-        <div style={{ display: "flex", gap: "20px" }}>
+        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
             <label style={labelStyle}>First Name</label>
             <input value={firstName} onChange={(e) => setFirstName(e.target.value)} style={inputStyle}/>
@@ -220,7 +224,7 @@ const CreateAccount = () => {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "20px" }}>
+        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
             <label style={labelStyle}>Email or Phone number</label>
             <input value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle}/>
@@ -246,7 +250,7 @@ const CreateAccount = () => {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "20px" }}>
+        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
           {/* Password */}
           <div style={{ display: "flex", flexDirection: "column", flex: 1, position: "relative" }}>
             <label style={labelStyle}>Password</label>
