@@ -25,65 +25,70 @@ const About = () => {
         fontSize: '18px',
     };
     const textContainer = {
-        flex: "1",
-        maxWidth: "600px", // keeps line width readable
-        textAlign: "left", // ensures text aligns left
-     };
+        flex: "1 1 280px",
+        maxWidth: "600px",
+        textAlign: "left",
+    };
     const video = {
-        width: '350px',
-        height: '500px',
+        width: '100%',
+        maxWidth: '350px',
+        height: 'auto',
+        minHeight: '200px',
         borderRadius: '12px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        
         objectFit: 'cover',
         cursor: 'pointer',
+        display: 'block',
+        margin: '0 auto',
     };
     const vision = {
         borderRadius: '8px',
         boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
         backgroundColor: '#27001a',
         color: 'white',
-        
         padding: '20px',
         textAlign: 'center',
-        height: '300px',
-        width: '300px'
+        border: '1px solid rgba(173,149,81,0.3)',
+        boxSizing: 'border-box',
     };
     const videoGrid = {
         display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '5px',
-        margin: '40px 0',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '10px',
+        margin: '30px 5%',
+        boxSizing: 'border-box',
     };
     const visionSection = {
         display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '40px',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '25px',
         justifyContent: 'center',
-        alignItems: 'center',
-        margin: '40px auto',
-        maxWidth: '1000px',
+        alignItems: 'stretch',
+        margin: '40px 5%',
+        boxSizing: 'border-box',
     };
     const videoItem = {
         width: '100%',
+        overflow: 'hidden',
     };
     const sectionStyle = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "50px 100px",
-    backgroundColor: "#f8faff",
-    flexWrap: "wrap", 
-    gap: "150px",
-  };
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 5%",
+        backgroundColor: "#27001a",
+        flexWrap: "wrap",
+        gap: "40px",
+        boxSizing: "border-box",
+    };
 
     return (
         <>
              <div style={about}>
-                <div style={{ backgroundColor: "#27001a", padding: "2rem", display: "flex",position: "relative", alignItems: "flex-start",gap: "70px" }}>
+                <div style={{ backgroundColor: "#27001a", padding: "2rem 5%", display: "flex", position: "relative", alignItems: "flex-start", gap: "30px", flexWrap: "wrap", boxSizing: "border-box" }}>
   
   
-                  <div style={{ flex: "1", maxWidth: "65%" }}>
+                  <div style={{ flex: "1 1 280px", maxWidth: "65%", minWidth: "240px" }}>
                      <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "35px", color: "#cdaf5b", marginBottom: "1rem",textAlign: "left" }}>
                         Our Certification Promise
                      </h1>
