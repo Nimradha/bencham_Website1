@@ -185,19 +185,19 @@ const About = () => {
                         Your browser does not support the video tag.
                 </video>
                  <div style={textContainer}>
-                   <h1>Opportunity and Support</h1>
-                   <h2>
+                   <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "35px", color: "#cdaf5b", marginBottom: "1rem" }}>Opportunity and Support</h1>
+                   <h2 style={{ fontFamily: "'Montserrat', sans-serif", color: "#ebe2c7", marginBottom: "1rem" }}>
                       Are you searching for the perfect place to showcase your one-of-a-kind creations?
                    </h2>
-                   <p style={paragraphStyle}>
-                      At Bencham Jewellers, we’re committed to providing a platform where talented artists
+                   <p style={{ ...paragraphStyle, color: "#ebe2c7" }}>
+                      At Bencham Jewellers, we're committed to providing a platform where talented artists
                       and artisans can showcase and sell their unique crafts and connect with customers
                       who appreciate and value handmade goods. We understand the search for the perfect
-                      platform to showcase and sell your creations, and we’re here to offer you that very
+                      platform to showcase and sell your creations, and we're here to offer you that very
                       opportunity.
                    </p>
-                   <p style={paragraphStyle}>
-                      Whether you’re a seasoned crafter or just beginning your creative journey, 
+                   <p style={{ ...paragraphStyle, color: "#ebe2c7" }}>
+                      Whether you're a seasoned crafter or just beginning your creative journey, 
                       sparkleberry.co is here to support you every step of the way. We provide tools 
                       and resources designed to help you thrive in your craft business.
                    </p>
