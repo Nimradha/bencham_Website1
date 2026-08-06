@@ -67,7 +67,7 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
         }
       } catch (err) {
         console.error(err);
-        alert("Google login failed. Please try again.");
+        alert("Google login error: " + (err.message || "Network error"));
       }
     },
     onError: () => {

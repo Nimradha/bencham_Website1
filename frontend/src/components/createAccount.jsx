@@ -39,7 +39,7 @@ const CreateAccount = () => {
           }
         } catch (err) {
           console.error(err);
-          alert("Google login failed");
+          alert("Google login error: " + (err.message || "Network error"));
         }
       },
       onError: () => {
