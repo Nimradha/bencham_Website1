@@ -54,10 +54,12 @@ const Product = () => {
 
     const imageGrid = {
         display: 'grid',
-        gridTemplateColumns: 'repeat(5, 1fr)',
-        gap: '40px',
-        margin: '40px 40px',
-        objectFit: 'cover',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+        gap: '20px',
+        padding: '20px 5%',
+        margin: '0 auto',
+        maxWidth: '1200px',
+        boxSizing: 'border-box',
     };
 
     const [currentPage, setCurrentPage] = useState(1);

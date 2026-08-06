@@ -7,11 +7,13 @@ const Footer = () => {
   const topSection = {
     backgroundColor: "#ad9551", // gold color
     color: "#27001a",
-    padding: "5px 200px",
+    padding: "20px 5%",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     flexWrap: "wrap",
+    gap: "15px",
+    boxSizing: "border-box",
   };
   const testDeco = {
     textDecoration: "none",
@@ -31,10 +33,11 @@ const Footer = () => {
   const bottomSection = {
     backgroundColor: "#27001a", // purple
     color: "white",
-    padding: "40px 80px 20px 80px",
+    padding: "40px 5% 20px 5%",
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
     gap: "20px",
+    boxSizing: "border-box",
   };
 
   const column = {
