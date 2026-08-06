@@ -248,14 +248,17 @@ const ManageAccount = () => {
     minHeight: "calc(100vh - 135px)",
     backgroundColor: "#27001a",
     fontFamily: "'Inter', 'Segoe UI', sans-serif",
-    padding: "30px 60px",
+    padding: "30px 5%",
     gap: "30px",
     color: "white",
+    flexWrap: "wrap",
+    boxSizing: "border-box",
   };
 
   const sidebar = {
     width: "220px",
     flexShrink: 0,
+    minWidth: "180px",
   };
 
   const greeting = {
@@ -304,7 +307,7 @@ const ManageAccount = () => {
 
   const cardsRow = {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
     gap: "16px",
   };
 
@@ -399,9 +402,24 @@ const ManageAccount = () => {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div style={page}>
+    <div style={page} className="account-page-wrap">
+      <style>{`
+        @media (max-width: 650px) {
+          .account-page-wrap {
+            flex-direction: column !important;
+            padding: 20px 4% !important;
+          }
+          .account-sidebar {
+            width: 100% !important;
+            min-width: unset !important;
+          }
+          .account-main {
+            width: 100% !important;
+          }
+        }
+      `}</style>
       {/* ── Sidebar ── */}
-      <aside style={sidebar}>
+      <aside style={sidebar} className="account-sidebar">
         <p style={greeting}>
           Hello, <span style={greetingName}>{firstName}</span>
         </p>
@@ -428,7 +446,7 @@ const ManageAccount = () => {
       </aside>
 
       {/* ── Main content ── */}
-      <main style={main}>
+      <main style={main} className="account-main">
         {/* Personal Profile section */}
         {activeSection === "profile" && (
           <>
