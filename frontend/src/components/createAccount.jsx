@@ -124,26 +124,26 @@ const CreateAccount = () => {
   };
 
   const card = {
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(255,255,255,0.05)",
     padding: "40px",
-    borderRadius: "12px",
-    width: "450px",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+    borderRadius: "8px",
+    width: "550px",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
     textAlign: "center",
-    height: "500px"
+    border: "1px solid rgba(173, 149, 81, 0.6)",
+    backdropFilter: "blur(10px)",
   };
 
-
-
-  const button = {
-    width: "45%",
+  const primaryButton = {
+    width: "48%",
     padding: "12px",
-    backgroundColor: "#27001a",
-    color: "white",
+    backgroundColor: "#d4be82",
+    color: "#000",
+    fontWeight: "600",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
-    fontSize: "16px",
+    fontSize: "15px",
     marginTop: "10px",
     justifyContent: "center",
     gap: "8px",
@@ -151,171 +151,168 @@ const CreateAccount = () => {
     alignItems: "center",
   };
 
-
+  const googleButton = {
+    width: "48%",
+    padding: "12px",
+    backgroundColor: "rgba(255,255,255,0.1)",
+    color: "white",
+    border: "1px solid rgba(173, 149, 81, 0.6)",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "15px",
+    marginTop: "10px",
+    justifyContent: "center",
+    gap: "8px",
+    display: "flex",
+    alignItems: "center",
+  };
 
   const errorStyle = {
-    color: "red",
+    color: "#ff6b6b",
     fontSize: "12px",
     textAlign: "left",
     marginBottom: "10px",
   };
 
-  
+  const labelStyle = {
+    textAlign: "left",
+    marginBottom: "6px",
+    fontWeight: "500",
+    color: "white",
+  };
 
+  const inputStyle = {
+    width: "100%",
+    padding: "10px",
+    marginBottom: "15px",
+    border: "1px solid rgba(173, 149, 81, 0.6)",
+    borderRadius: "4px",
+    boxSizing: "border-box",
+    backgroundColor: "#161201",
+    color: "white",
+  };
 
-
-
- const labelStyle = {
-  textAlign: "left",
-  marginBottom: "6px",
-  fontWeight: "500",
-  color: "#27001a",
- };
-
- const inputStyle = {
-  width: "100%",       // THIS fixes left/right mismatch
-  padding: "10px",
-  paddingRight: "80px", // space for eye icon
-  marginBottom: "15px",
-  border: "1px solid #ccc",
-  borderRadius: "4px",
-  boxSizing: "border-box", // VERY IMPORTANT
- };
-
-
-
- const eyeStyle = {
+  const eyeStyle = {
     position: "absolute",
     top: "40%",
     right: "10px",
     cursor: "pointer",
     transform: "translateY(-50%)",
+    color: "#ad9551",
   };
-
-
-
-
 
   return (
     <div style={container}>
       <div style={card}>
-        <h2 style={{ marginBottom: "20px" }}>Create Account</h2>
+        <h2 style={{ marginBottom: "25px", color: "#ad9551" }}>Create Account</h2>
 
-        
-         <div style={{ display: "flex", gap: "20px" }}>
-  
+        <div style={{ display: "flex", gap: "20px" }}>
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-           <label style={labelStyle}>First Name</label>
-           <input value={firstName} onChange={(e) => setFirstName(e.target.value)} style={inputStyle}/>
+            <label style={labelStyle}>First Name</label>
+            <input value={firstName} onChange={(e) => setFirstName(e.target.value)} style={inputStyle}/>
             {errors.firstName && <p style={errorStyle}>{errors.firstName}</p>}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-           <label style={labelStyle}>Last Name</label>
-           <input value={lastName} onChange={(e) => setLastName(e.target.value)} style={inputStyle}/>
+            <label style={labelStyle}>Last Name</label>
+            <input value={lastName} onChange={(e) => setLastName(e.target.value)} style={inputStyle}/>
             {errors.lastName && <p style={errorStyle}>{errors.lastName}</p>}
           </div>
-         </div>
+        </div>
 
-         <div style={{ display: "flex", gap: "20px" }}>
-  
+        <div style={{ display: "flex", gap: "20px" }}>
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-           <label style={labelStyle}>Email or Phone number</label>
-           <input value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle}/>
-           {errors.email && <p style={errorStyle}>{errors.email}</p>}
+            <label style={labelStyle}>Email or Phone number</label>
+            <input value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle}/>
+            {errors.email && <p style={errorStyle}>{errors.email}</p>}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-           <label style={labelStyle}>Country</label>
-           <select style={inputStyle} value={country} onChange={(e) => setCountry(e.target.value)}>
-             <option value="">Select Country</option>
-             <option value="Australia">Australia</option>
-             <option value="Bangladesh">Bangladesh</option>
-             <option value="Canada">Canada</option>
-             <option value="Dubai">Dubai</option>
-             <option value="India">India</option>
-             <option value="NewZealand">NewZealand</option>
-             <option value="Pakistan">Pakistan</option>
-             <option value="Sri Lanka">Sri Lanka</option>
-             <option value="United States">United States</option>
-             <option value="United Kingdom">United Kingdom</option>
-           </select>
+            <label style={labelStyle}>Country</label>
+            <select style={inputStyle} value={country} onChange={(e) => setCountry(e.target.value)}>
+              <option value="" style={{ backgroundColor: "#161201", color: "white" }}>Select Country</option>
+              <option value="Australia" style={{ backgroundColor: "#161201", color: "white" }}>Australia</option>
+              <option value="Bangladesh" style={{ backgroundColor: "#161201", color: "white" }}>Bangladesh</option>
+              <option value="Canada" style={{ backgroundColor: "#161201", color: "white" }}>Canada</option>
+              <option value="Dubai" style={{ backgroundColor: "#161201", color: "white" }}>Dubai</option>
+              <option value="India" style={{ backgroundColor: "#161201", color: "white" }}>India</option>
+              <option value="NewZealand" style={{ backgroundColor: "#161201", color: "white" }}>NewZealand</option>
+              <option value="Pakistan" style={{ backgroundColor: "#161201", color: "white" }}>Pakistan</option>
+              <option value="Sri Lanka" style={{ backgroundColor: "#161201", color: "white" }}>Sri Lanka</option>
+              <option value="United States" style={{ backgroundColor: "#161201", color: "white" }}>United States</option>
+              <option value="United Kingdom" style={{ backgroundColor: "#161201", color: "white" }}>United Kingdom</option>
+            </select>
             {errors.country && <p style={errorStyle}>{errors.country}</p>}
           </div>
-         </div>
-
-         <div style={{ display: "flex", gap: "20px" }}>
-      {/* Password */}
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, position: "relative" }}>
-        <label style={labelStyle}>Password</label>
-        <div style={{position: "relative"}}>
-          <input
-            type={showPassword ? "text" : "password"}
-            style={inputStyle}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          {showPassword ? (
-            <FaEyeSlash style={eyeStyle} onClick={togglePassword} />
-          ) : (
-            <FaEye style={eyeStyle} onClick={togglePassword} />
-          )}
-          
         </div>
-        {errors.password && <p style={errorStyle}>{errors.password}</p>}
-      </div> 
 
-      {/* Confirm Password */}
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, position: "relative" }}>
-        <label style={labelStyle}>Confirm Password</label>
-        <div style={{position: "relative"}}>
-          <input
-            type={showPassword ? "text" : "password"}
-            style={inputStyle}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          {showPassword ? (
-            <FaEyeSlash style={eyeStyle} onClick={togglePassword} />
-          ) : (
-            <FaEye style={eyeStyle} onClick={togglePassword} />
-          )}
-          
+        <div style={{ display: "flex", gap: "20px" }}>
+          {/* Password */}
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, position: "relative" }}>
+            <label style={labelStyle}>Password</label>
+            <div style={{position: "relative"}}>
+              <input
+                type={showPassword ? "text" : "password"}
+                style={inputStyle}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              {showPassword ? (
+                <FaEyeSlash style={eyeStyle} onClick={togglePassword} />
+              ) : (
+                <FaEye style={eyeStyle} onClick={togglePassword} />
+              )}
+            </div>
+            {errors.password && <p style={errorStyle}>{errors.password}</p>}
+          </div> 
+
+          {/* Confirm Password */}
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, position: "relative" }}>
+            <label style={labelStyle}>Confirm Password</label>
+            <div style={{position: "relative"}}>
+              <input
+                type={showPassword ? "text" : "password"}
+                style={inputStyle}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              {showPassword ? (
+                <FaEyeSlash style={eyeStyle} onClick={togglePassword} />
+              ) : (
+                <FaEye style={eyeStyle} onClick={togglePassword} />
+              )}
+            </div>
+            {errors.confirmPassword && <p style={errorStyle}>{errors.confirmPassword}</p>}
+          </div>
         </div>
-        {errors.confirmPassword && <p style={errorStyle}>{errors.confirmPassword}</p>}
-      </div>
-    </div>
-
 
         <div style={{ display: "flex", alignItems: "center", marginBottom: "15px" }}>
-        <input
-          type="checkbox"
-          id="rememberMe"
-          checked={rememberMe}
-          onChange={(e) => setRememberMe(e.target.checked)}
-          style={{ marginRight: "8px", cursor: "pointer" }}
-        />
-        <label
-          htmlFor="rememberMe"
-          style={{ fontSize: "14px", color: "#27001a", cursor: "pointer" }}
-        >
-          Remember me
-        </label>
-      </div>
-        
-
-        <div style={{display: "flex",justifyContent: "center",gap: "20px", }}>
-         <button type="button"style={button} onClick={handleCreateAccount}>Create Account</button>
-         <button style={button} onClick={() => googleLogin()}>
-          <FcGoogle size={22} style={{ marginRight: "10px" }} />
-          Sign in with Google
-         </button>
+          <input
+            type="checkbox"
+            id="rememberMe"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            style={{ marginRight: "8px", cursor: "pointer", accentColor: "#d4be82" }}
+          />
+          <label
+            htmlFor="rememberMe"
+            style={{ fontSize: "14px", color: "white", cursor: "pointer" }}
+          >
+            Remember me
+          </label>
         </div>
 
+        <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
+          <button type="button" style={primaryButton} onClick={handleCreateAccount}>Create Account</button>
+          <button type="button" style={googleButton} onClick={() => googleLogin()}>
+            <FcGoogle size={22} style={{ marginRight: "6px" }} />
+            Sign in with Google
+          </button>
+        </div>
 
-        <p style={{ marginTop: "20px", fontSize: "14px" }}>
+        <p style={{ marginTop: "25px", fontSize: "14px", color: "#ccc" }}>
           Already have an account?{" "}
-          <Link to="/login" style={{ color: "#ad9551", textDecoration: "none" }}>
+          <Link to="/login" style={{ color: "#d4be82", textDecoration: "none", fontWeight: "bold" }}>
             Log in
           </Link>
         </p>
