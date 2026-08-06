@@ -370,33 +370,35 @@ const Header = () => {
                     
                 </ul>
             </nav>
-            <form className='search-bar' style={searchBarStyle} onSubmit={handleSearch}>
-                <input type="text" placeholder="Search jewelry..." style={inputStyle} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
-                <button type="submit" style={buttonStyle}><FaSearch size={20} color="#cdaf5b" /></button>
-            </form>
-           <div className='cart' style={{ cursor: "pointer", position: "relative" }} onClick={handleCartClick}>
-            <img src="/images/shopping-cart-01-svgrepo-com (1).svg" style={{height:"35px"}} alt="Cart" />
-            {isLoggedIn && cartCount > 0 && (
-                <span style={{
-                    position: "absolute",
-                    top: "-5px",
-                    right: "-10px",
-                    backgroundColor: "white",
-                    color: "#e65100",
-                    borderRadius: "50%",
-                    width: "18px",
-                    height: "18px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                    boxShadow: "0 2px 5px rgba(0,0,0,0.3)"
-                }}>
-                    {cartCount}
-                </span>
-            )}
-           </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <form className='search-bar' style={searchBarStyle} onSubmit={handleSearch}>
+                    <input type="text" placeholder="Search jewelry..." style={inputStyle} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
+                    <button type="submit" style={buttonStyle}><FaSearch size={20} color="#cdaf5b" /></button>
+                </form>
+               <div className='cart' style={{ cursor: "pointer", position: "relative" }} onClick={handleCartClick}>
+                <img src="/images/shopping-cart-01-svgrepo-com (1).svg" style={{height:"35px"}} alt="Cart" />
+                {isLoggedIn && cartCount > 0 && (
+                    <span style={{
+                        position: "absolute",
+                        top: "-5px",
+                        right: "-10px",
+                        backgroundColor: "white",
+                        color: "#e65100",
+                        borderRadius: "50%",
+                        width: "18px",
+                        height: "18px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.3)"
+                    }}>
+                        {cartCount}
+                    </span>
+                )}
+               </div>
+            </div>
 
         </header>
     );
