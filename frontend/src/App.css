@@ -134,13 +134,18 @@ textarea:-webkit-autofill:focus {
   background-color: #ad9551;
   color: white;
   border: none;
-  padding: 12px;
+  padding: 14px 20px;
   width: 100%;
   border-radius: 20px;
   font-size: 18px;
   font-family: 'Montserrat', sans-serif;
+  font-weight: bold;
   cursor: pointer;
-  height: 40px;
+  min-height: 50px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .proceed{
   background-color: #ad9551;
