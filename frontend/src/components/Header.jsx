@@ -181,7 +181,7 @@ const Header = () => {
                                 }}
                             >
                                 <span style={{ fontSize: "16px" }}>👤</span>
-                                {firstName ? `${firstName}'S ACCOUNT` : "MY ACCOUNT"}
+                                {firstName ? firstName : "MY ACCOUNT"}
                                 <span style={{ fontSize: "10px", marginLeft: "2px" }}>▼</span>
                             </button>
 

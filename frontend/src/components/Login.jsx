@@ -124,7 +124,9 @@ const overlayText = {
 };
 
   const button = {
-    width: "45%",
+    flex: "1 1 140px",
+    minWidth: "130px",
+    boxSizing: "border-box",
     padding: "12px",
     backgroundColor: "#d4be82",
     color: "black",
@@ -243,7 +245,7 @@ const inputStyle = {
       </div>
         
 
-        <div style={{display: "flex",justifyContent: "center",gap: "20px", }}>
+        <div style={{display: "flex", justifyContent: "center", gap: "15px", flexWrap: "wrap"}}>
 
          <button
           style={button}

@@ -137,9 +137,10 @@ const CreateAccount = () => {
   };
 
   const primaryButton = {
-    flex: "1",
-    minWidth: "200px",
-    padding: "12px",
+    flex: "1 1 160px",
+    minWidth: "130px",
+    boxSizing: "border-box",
+    padding: "12px 16px",
     backgroundColor: "#d4be82",
     color: "#000",
     fontWeight: "600",
@@ -155,9 +156,10 @@ const CreateAccount = () => {
   };
 
   const googleButton = {
-    flex: "1",
-    minWidth: "200px",
-    padding: "12px",
+    flex: "1 1 160px",
+    minWidth: "130px",
+    boxSizing: "border-box",
+    padding: "12px 16px",
     backgroundColor: "rgba(255,255,255,0.1)",
     color: "white",
     border: "1px solid rgba(173, 149, 81, 0.6)",
@@ -306,7 +308,7 @@ const CreateAccount = () => {
           </label>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: "15px", flexWrap: "wrap" }}>
           <button type="button" style={primaryButton} onClick={handleCreateAccount}>Create Account</button>
           <button type="button" style={googleButton} onClick={() => googleLogin()}>
             <FcGoogle size={22} style={{ marginRight: "6px" }} />
