@@ -75,28 +75,32 @@ const Login = () => {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: "100vh",
+    minHeight: "85vh",
     backgroundColor: "#27001a",
     fontFamily: "'Inter', sans-serif",
+    padding: "40px 20px",
+    boxSizing: "border-box",
   };
 
   const card = {
     backgroundColor: "rgba(255,255,255,0.05)",
-    padding: "0 40px 40px 40px",
+    padding: "0 25px 30px 25px",
     borderRadius: "8px",
     width: "450px",
+    maxWidth: "92vw",
+    boxSizing: "border-box",
     boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
     textAlign: "center",
-    height: "620px",
     border: '1px solid rgba(173, 149, 81, 0.6)',
+    backdropFilter: "blur(10px)",
   };
 const loginImage = {
   position: "relative",
   height: "180px",
-  width: "calc(100% + 80px)", // card width + left+right padding
-  marginLeft: "-40px",
+  width: "calc(100% + 50px)", // card width + left+right padding
+  marginLeft: "-25px",
   marginBottom: "20px",
-  borderRadius: "8px",
+  borderRadius: "8px 8px 0 0",
   overflow: "hidden",
 };
 const imageOverlay = {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaSearch } from "react-icons/fa"; 
+import { FaSearch } from "react-icons/fa";
 import { FaShoppingCart } from "react-icons/fa";
 import { Link } from 'react-router-dom';
 import { NavLink } from "react-router-dom";
@@ -83,7 +83,7 @@ const Header = () => {
         alignItems: 'center',
     };
     const handleCartClick = () => {
-      navigate("/cart");
+        navigate("/cart");
     };
 
 
@@ -98,10 +98,10 @@ const Header = () => {
         height: "100%",
         backgroundColor: "#27001a",
         color: "white",
-  };
+    };
 
     const buttonStyle = {
-        
+
         border: "none",
         display: "flex",
         alignItems: "center",
@@ -113,7 +113,7 @@ const Header = () => {
     };
 
     const imgStyle = {
-        height: "100%", 
+        height: "100%",
         width: "auto",
     };
 
@@ -137,10 +137,10 @@ const Header = () => {
         }
     };
     const navLinkStyle = ({ isActive }) => ({
-       textDecoration: isActive ? "underline" : "none",
-       textUnderlineOffset: "6px",
-       color: isActive ? "#ad9551" : "white",
-});
+        textDecoration: isActive ? "underline" : "none",
+        textUnderlineOffset: "6px",
+        color: isActive ? "#ad9551" : "white",
+    });
 
 
     return (
@@ -157,7 +157,7 @@ const Header = () => {
                     <li><NavLink to="/about" style={navLinkStyle} >About Us</NavLink></li>
 
                     <li><NavLink to="/contact" style={navLinkStyle} >Contact Us</NavLink></li>
-                    
+
                     {isLoggedIn ? (
                         <li style={{ position: "relative" }}>
                             {/* ── Account button ── */}
@@ -181,129 +181,129 @@ const Header = () => {
                                 }}
                             >
                                 <span style={{ fontSize: "16px" }}>👤</span>
-                                {firstName ? firstName : "MY ACCOUNT"}
+                                {firstName ? `${firstName}` : "MY ACCOUNT"}
                                 <span style={{ fontSize: "10px", marginLeft: "2px" }}>▼</span>
                             </button>
 
                             {/* ── Dropdown menu ── */}
                             {showDropdown && (
                                 <>
-                                {/* Click-outside overlay (invisible) */}
-                                <div
-                                    style={{ position: "fixed", inset: 0, zIndex: 999 }}
-                                    onClick={() => setShowDropdown(false)}
-                                />
+                                    {/* Click-outside overlay (invisible) */}
+                                    <div
+                                        style={{ position: "fixed", inset: 0, zIndex: 999 }}
+                                        onClick={() => setShowDropdown(false)}
+                                    />
 
-                                <div style={{
-                                    position: "absolute",
-                                    top: "calc(100% + 14px)",
-                                    left: "50%",
-                                    transform: "translateX(-50%)",
-                                    background: "#27001a",
-                                    border: "1px solid rgba(173,149,81,0.4)",
-                                    borderRadius: "8px",
-                                    width: "280px",
-                                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-                                    zIndex: 1000,
-                                    overflow: "hidden",
-                                }}>
-                                    {/* Triangle pointer */}
                                     <div style={{
                                         position: "absolute",
-                                        top: "-8px",
+                                        top: "calc(100% + 14px)",
                                         left: "50%",
                                         transform: "translateX(-50%)",
-                                        width: 0,
-                                        height: 0,
-                                        borderLeft: "9px solid transparent",
-                                        borderRight: "9px solid transparent",
-                                        borderBottom: "9px solid #27001a",
-                                        filter: "drop-shadow(0 -2px 2px rgba(0,0,0,0.3))",
-                                    }} />
+                                        background: "#27001a",
+                                        border: "1px solid rgba(173,149,81,0.4)",
+                                        borderRadius: "8px",
+                                        width: "280px",
+                                        boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                                        zIndex: 1000,
+                                        overflow: "hidden",
+                                    }}>
+                                        {/* Triangle pointer */}
+                                        <div style={{
+                                            position: "absolute",
+                                            top: "-8px",
+                                            left: "50%",
+                                            transform: "translateX(-50%)",
+                                            width: 0,
+                                            height: 0,
+                                            borderLeft: "9px solid transparent",
+                                            borderRight: "9px solid transparent",
+                                            borderBottom: "9px solid #27001a",
+                                            filter: "drop-shadow(0 -2px 2px rgba(0,0,0,0.3))",
+                                        }} />
 
-                                    {/* Menu items */}
-                                    {[
-                                        { icon: "/images/smile.png",          label: "Manage My Account",          section: "profile" },
-                                        { icon: "/images/orders.png",         label: "My Orders",                  section: "orders" },
-                                        { icon: "/images/heart.png",          label: "My Wishlist & Followed Stores", section: "wishlist" },
-                                        { icon: "/images/recommendation.png", label: "My Reviews",                 section: "reviews" },
-                                        { icon: "/images/return.png",         label: "My Returns & Cancellations", section: "returns" },
-                                    ].map((item) => (
+                                        {/* Menu items */}
+                                        {[
+                                            { icon: "/images/smile.png", label: "Manage My Account", section: "profile" },
+                                            { icon: "/images/orders.png", label: "My Orders", section: "orders" },
+                                            { icon: "/images/heart.png", label: "My Wishlist & Followed Stores", section: "wishlist" },
+                                            { icon: "/images/recommendation.png", label: "My Reviews", section: "reviews" },
+                                            { icon: "/images/return.png", label: "My Returns & Cancellations", section: "returns" },
+                                        ].map((item) => (
+                                            <div
+                                                key={item.label}
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "14px",
+                                                    padding: "13px 20px",
+                                                    cursor: "pointer",
+                                                    color: "white",
+                                                    fontSize: "14px",
+                                                    fontWeight: "400",
+                                                    borderBottom: "1px solid rgba(255,255,255,0.08)",
+                                                    transition: "background 0.15s",
+                                                    fontFamily: "inherit",
+                                                    whiteSpace: "nowrap",
+                                                }}
+                                                onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
+                                                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                                                onClick={() => {
+                                                    setShowDropdown(false);
+                                                    navigate("/manageAccount", { state: { section: item.section } });
+                                                }}
+                                            >
+                                                <span style={{
+                                                    width: "34px",
+                                                    height: "34px",
+                                                    borderRadius: "50%",
+                                                    border: "1.5px solid rgba(255,255,255,0.2)",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    flexShrink: 0,
+                                                    background: "rgba(255,255,255,0.07)",
+                                                }}>
+                                                    <img src={item.icon} alt="" style={{ width: "18px", height: "18px", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
+                                                </span>
+                                                {item.label}
+                                            </div>
+                                        ))}
+
+                                        {/* Logout */}
                                         <div
-                                            key={item.label}
+                                            onClick={handleLogout}
                                             style={{
                                                 display: "flex",
                                                 alignItems: "center",
                                                 gap: "14px",
                                                 padding: "13px 20px",
                                                 cursor: "pointer",
-                                                color: "white",
+                                                color: "#ad9551",
                                                 fontSize: "14px",
                                                 fontWeight: "400",
-                                                borderBottom: "1px solid rgba(255,255,255,0.08)",
                                                 transition: "background 0.15s",
                                                 fontFamily: "inherit",
                                                 whiteSpace: "nowrap",
                                             }}
                                             onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
                                             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                                            onClick={() => {
-                                                setShowDropdown(false);
-                                                navigate("/manageAccount", { state: { section: item.section } });
-                                            }}
                                         >
                                             <span style={{
                                                 width: "34px",
                                                 height: "34px",
                                                 borderRadius: "50%",
-                                                border: "1.5px solid rgba(255,255,255,0.2)",
+                                                border: "1.5px solid rgba(255,255,255,0.15)",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
                                                 flexShrink: 0,
                                                 background: "rgba(255,255,255,0.07)",
                                             }}>
-                                                <img src={item.icon} alt="" style={{ width: "18px", height: "18px", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
+                                                <img src="/images/logout.png" alt="" style={{ width: "18px", height: "18px", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
                                             </span>
-                                            {item.label}
+                                            Logout
                                         </div>
-                                    ))}
-
-                                    {/* Logout */}
-                                    <div
-                                        onClick={handleLogout}
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "14px",
-                                            padding: "13px 20px",
-                                            cursor: "pointer",
-                                            color: "#ad9551",
-                                            fontSize: "14px",
-                                            fontWeight: "400",
-                                            transition: "background 0.15s",
-                                            fontFamily: "inherit",
-                                            whiteSpace: "nowrap",
-                                        }}
-                                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
-                                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                                    >
-                                        <span style={{
-                                            width: "34px",
-                                            height: "34px",
-                                            borderRadius: "50%",
-                                            border: "1.5px solid rgba(255,255,255,0.15)",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            flexShrink: 0,
-                                            background: "rgba(255,255,255,0.07)",
-                                        }}>
-                                            <img src="/images/logout.png" alt="" style={{ width: "18px", height: "18px", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
-                                        </span>
-                                        Logout
                                     </div>
-                                </div>
                                 </>
                             )}
                         </li>
@@ -324,14 +324,14 @@ const Header = () => {
                                         fontFamily: "inherit",
                                         transition: "all 0.2s ease",
                                     }}
-                                    onMouseEnter={e => {
-                                        e.currentTarget.style.background = "#ad9551";
-                                        e.currentTarget.style.color = "#27001a";
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.background = "none";
-                                        e.currentTarget.style.color = "#ad9551";
-                                    }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.background = "#ad9551";
+                                            e.currentTarget.style.color = "#27001a";
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.background = "none";
+                                            e.currentTarget.style.color = "#ad9551";
+                                        }}
                                     >
                                         LOGIN
                                     </button>
@@ -352,14 +352,14 @@ const Header = () => {
                                         fontFamily: "inherit",
                                         transition: "all 0.2s ease",
                                     }}
-                                    onMouseEnter={e => {
-                                        e.currentTarget.style.background = "#c9a84c";
-                                        e.currentTarget.style.borderColor = "#c9a84c";
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.background = "#ad9551";
-                                        e.currentTarget.style.borderColor = "#ad9551";
-                                    }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.background = "#c9a84c";
+                                            e.currentTarget.style.borderColor = "#c9a84c";
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.background = "#ad9551";
+                                            e.currentTarget.style.borderColor = "#ad9551";
+                                        }}
                                     >
                                         SIGN UP
                                     </button>
@@ -367,37 +367,37 @@ const Header = () => {
                             </li>
                         </>
                     )}
-                    
+
                 </ul>
             </nav>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <form className='search-bar' style={searchBarStyle} onSubmit={handleSearch}>
-                    <input type="text" placeholder="Search jewelry..." style={inputStyle} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
+                    <input type="text" placeholder="Search jewelry..." style={inputStyle} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                     <button type="submit" style={buttonStyle}><FaSearch size={20} color="#cdaf5b" /></button>
                 </form>
-               <div className='cart' style={{ cursor: "pointer", position: "relative" }} onClick={handleCartClick}>
-                <img src="/images/shopping-cart-01-svgrepo-com (1).svg" style={{height:"35px"}} alt="Cart" />
-                {isLoggedIn && cartCount > 0 && (
-                    <span style={{
-                        position: "absolute",
-                        top: "-5px",
-                        right: "-10px",
-                        backgroundColor: "white",
-                        color: "#e65100",
-                        borderRadius: "50%",
-                        width: "18px",
-                        height: "18px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "11px",
-                        fontWeight: "bold",
-                        boxShadow: "0 2px 5px rgba(0,0,0,0.3)"
-                    }}>
-                        {cartCount}
-                    </span>
-                )}
-               </div>
+                <div className='cart' style={{ cursor: "pointer", position: "relative" }} onClick={handleCartClick}>
+                    <img src="/images/shopping-cart-01-svgrepo-com (1).svg" style={{ height: "35px" }} alt="Cart" />
+                    {isLoggedIn && cartCount > 0 && (
+                        <span style={{
+                            position: "absolute",
+                            top: "-5px",
+                            right: "-10px",
+                            backgroundColor: "white",
+                            color: "#e65100",
+                            borderRadius: "50%",
+                            width: "18px",
+                            height: "18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "11px",
+                            fontWeight: "bold",
+                            boxShadow: "0 2px 5px rgba(0,0,0,0.3)"
+                        }}>
+                            {cartCount}
+                        </span>
+                    )}
+                </div>
             </div>
 
         </header>
