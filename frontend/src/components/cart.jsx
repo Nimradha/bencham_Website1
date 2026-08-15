@@ -1,8 +1,9 @@
-import React, { useContext, useState,useEffect} from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { CartContext } from "./CartContext";
 import { MdDelete } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { isLoggedIn } from "./auth";
+import { parsePrice } from "./Details";
 
 const Cart = () => {
 
@@ -45,7 +46,7 @@ const Cart = () => {
 
   const subtotal = cartItems
   .filter(item => selectedItems.includes(item.id))
-  .reduce((total, item) => total + item.price * item.quantity, 0);
+  .reduce((total, item) => total + parsePrice(item.price) * item.quantity, 0);
 
   
   const handleSelect = (id) => {

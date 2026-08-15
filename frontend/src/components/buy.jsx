@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import AddressFormModal from "./AddressFormModal";
 import { CartContext } from "./CartContext";
 import { API_BASE_URL } from "../config";
+import { parsePrice } from "./Details";
 
 const Buy = () => {
   const location = useLocation();
@@ -36,7 +37,7 @@ const Buy = () => {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [isCOD, setIsCOD] = useState(false);
 
-  const subtotal = itemsList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = itemsList.reduce((sum, item) => sum + (parsePrice(item.price) * item.quantity), 0);
   const tax = subtotal * 0.1;
   const total = subtotal + tax;
 

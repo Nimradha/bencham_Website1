@@ -10,180 +10,187 @@ import LoginModal from "./LoginModal";
 import { API_BASE_URL } from "../config";
 
 
+export const parsePrice = (priceVal) => {
+  if (typeof priceVal === "number") return priceVal;
+  if (!priceVal) return 0;
+  const cleaned = String(priceVal).replace(/[^0-9.]/g, "");
+  return parseFloat(cleaned) || 0;
+};
+
 export const detailsData = {
 
   2: {
     title: "Star Necklace",
     description: "Perfect necklace for weddings and special occasions.",
-    price: "Rs 50000",
+    price: 50000,
     image: "/images/fig2.png"
   },
   4: {
     title: "Classic Bracelet4",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 35000",
+    price: 35000,
     image: "/images/fig4.png"
   },
   5: {
     title: "Classic Bracelet5",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 80000",
+    price: 80000,
     image: "/images/fig5.png"
   },
   6: {
     title: "Classic Bracelet6",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 60000",
+    price: 60000,
     image: "/images/fig6.png"
   },
   1: {
     title: "Classic Bracelet1",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 15000",
+    price: 15000,
     image: "/images/fig1.png"
   },
   7: {
     title: "Pink Sapphire Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 40000",
+    price: 40000,
     image: "/images/fig7.png"
   },
   8: {
     title: "Blue Topaz Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 25000",
+    price: 25000,
     image: "/images/fig8.png"
   },
   9: {
     title: "Star Ruby necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 40000",
+    price: 40000,
     image: "/images/fig9.png"
   },
   11: {
     title: "Classic Bracelet11",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 35000",
+    price: 35000,
     image: "/images/fig11.png"
   },
   12: {
     title: "Classic Bracelet12",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 25000",
+    price: 25000,
     image: "/images/fig12.png"
   },
   13: {
     title: "Spinal Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 25000",
+    price: 25000,
     image: "/images/fig13.png"
   },
   14: {
     title: "Classic Bracelet14",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 20000",
+    price: 20000,
     image: "/images/fig14.png"
   },
   15: {
     title: "Classic Bracelet15",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 25000",
+    price: 25000,
     image: "/images/fig15.png"
   },
   16: {
     title: "Spinal Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 25000",
+    price: 25000,
     image: "/images/fig16.png"
   },
   17: {
     title: "Blue Saphire Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 60000",
+    price: 60000,
     image: "/images/fig17.png"
   },
   18: {
     title: "Spinal Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 30000",
+    price: 30000,
     image: "/images/fig18.png"
   },
   19: {
     title: "Classic Bracelet19",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 20000",
+    price: 20000,
     image: "/images/fig19.png"
   },
   21: {
     title: "Classic Bracelet21",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 25000",
+    price: 25000,
     image: "/images/fig21.png"
   },
   22: {
     title: "Lemon Quartz Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 20000",
+    price: 20000,
     image: "/images/fig22.png"
   },
   24: {
     title: "Spinal Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 15000",
+    price: 15000,
     image: "/images/fig24.png"
   },
   25: {
     title: "Blue Saphire Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 40000",
+    price: 40000,
     image: "/images/fig25.png"
   },
   26: {
     title: "Classic Bracelet26",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 20000",
+    price: 20000,
     image: "/images/fig26.png"
   },
   27: {
     title: "Spinal Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 25000",
+    price: 25000,
     image: "/images/fig27.png"
   },
   28: {
     title: "Spinal Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 20000",
+    price: 20000,
     image: "/images/fig28.png"
   },
   29: {
     title: "Spinal Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 20000",
+    price: 20000,
     image: "/images/fig29.png"
   },
   30: {
     title: "Spinal Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 20000",
+    price: 20000,
     image: "/images/fig30.png"
   },
   32: {
     title: "Classic Bracelet32",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 20000",
+    price: 20000,
     image: "/images/fig32.png"
   },
   33: {
     title: "Blue Topaz Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 20000",
+    price: 20000,
     image: "/images/fig33.png"
   },
   35: {
     title: "Cats Eye Necklace",
     description: "Stylish bracelet with modern elegant design.",
-    price: "Rs 60000",
+    price: 60000,
     image: "/images/fig35.png"
   }
   // add more as needed
@@ -328,7 +335,7 @@ const Details = () => {
 
         <div className="details" style={{ display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#27001a" }}>
           <h1 style={{ margin: "0 0 5px 0", color: "#d4af37", fontStyle: "italic" }}>{item ? item.title : `Figure ${id}`}</h1>
-          {item && <h2 style={{ color: "white", margin: "0" }}>Rs.{item.price * quantity}</h2>}
+          {item && <h2 style={{ color: "white", margin: "0" }}>Rs. {(parsePrice(item.price) * quantity).toLocaleString()}</h2>}
 
           <p style={{ color: "#798598" }}>
             {item ? item.description : `No description available for Figure ${id}.`}
@@ -388,7 +395,7 @@ const Details = () => {
           {cartItem ? (
             <div style={{ padding: "20px", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "10px" }}>
               <h2 style={{ textAlign: "center", color: "#798598" }}>
-                LKR {cartItem.price * cartItem.quantity}.00
+                LKR {(parsePrice(cartItem.price) * cartItem.quantity).toLocaleString()}.00
               </h2>
 
               <button
@@ -434,7 +441,7 @@ const Details = () => {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "5px", alignItems: "center", textAlign: "center" }}>
                   <h4 style={{ margin: 0, color: "#b9c7de" }}>{cartItem.title}</h4>
-                  <h3 style={{ color: "#798598" }}>LKR {cartItem.price * cartItem.quantity}.00</h3>
+                  <h3 style={{ color: "#798598" }}>LKR {(parsePrice(cartItem.price) * cartItem.quantity).toLocaleString()}.00</h3>
 
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "center" }}>
                     <button
