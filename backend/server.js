@@ -630,7 +630,7 @@ app.post("/api/orders", authMiddleware, async (req, res) => {
       }
       console.log(`Sending order confirmation email directly to customer (${recipientEmail})...`);
       if (recipientEmail) {
-        sendOrderConfirmationEmail(newOrder, recipientEmail);
+        await sendOrderConfirmationEmail(newOrder, recipientEmail);
       }
     } catch (e) {
       console.error("Email fetch error:", e);
@@ -694,7 +694,7 @@ app.patch("/api/orders/:id/cancel", authMiddleware, async (req, res) => {
         const user = await User.findById(req.user.id);
         recipientEmail = user?.email;
       }
-      if (recipientEmail) sendCancellationEmail(order, recipientEmail);
+      if (recipientEmail) await sendCancellationEmail(order, recipientEmail);
     } catch (e) {
       console.error("Cancellation email error:", e);
     }
@@ -729,7 +729,7 @@ app.patch("/api/orders/:id/return", authMiddleware, async (req, res) => {
         const user = await User.findById(req.user.id);
         recipientEmail = user?.email;
       }
-      if (recipientEmail) sendReturnRequestEmail(order, recipientEmail);
+      if (recipientEmail) await sendReturnRequestEmail(order, recipientEmail);
     } catch (e) {
       console.error("Return email error:", e);
     }
@@ -1049,7 +1049,7 @@ app.post("/api/payhere/notify", async (req, res) => {
             </div>
           `
         };
-        transporter.sendMail(mailOptions).catch(err => console.error("Email send error:", err));
+        await transporter.sendMail(mailOptions);
       }
     }
 
