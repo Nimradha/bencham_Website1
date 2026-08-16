@@ -26,8 +26,8 @@ app.use((req, res, next) => {
 });
 app.use(cors());
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://benchamMores:123@cluster0.96s9z9n.mongodb.net/?appName=Cluster0';
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/bencham';
+const JWT_SECRET = process.env.JWT_SECRET || 'bencham_secret_key';
 
 let isConnected = false;
 const connectDB = async () => {
@@ -161,8 +161,8 @@ const authMiddleware = (req, res, next) => {
 
 
 // ── Email Transporter (Brevo SMTP or Gmail) ───────────────────────────────────
-const BREVO_SMTP_LOGIN = process.env.BREVO_SMTP_LOGIN || 'b37923001@smtp-brevo.com';
-const BREVO_SMTP_KEY   = process.env.BREVO_SMTP_KEY   || 'xsmtpsib-c502ec3a700482a107197047774e55391f98e3c8e581fbd80390c87889eddd23-K8PJM4DmZhwDS9LT';
+const BREVO_SMTP_LOGIN = process.env.BREVO_SMTP_LOGIN || '';
+const BREVO_SMTP_KEY   = process.env.BREVO_SMTP_KEY   || '';
 const STORE_EMAIL      = process.env.STORE_EMAIL      || 'nimradhanethmini2002@gmail.com';
 const OWNER_EMAIL      = process.env.OWNER_EMAIL      || 'fonseka.chamath@gmail.com';
 
@@ -951,8 +951,8 @@ const sendReturnRequestEmail = async (order, recipientEmail) => {
 };
 
 // PayHere Configuration (Sandbox User Credentials)
-const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID || "1235278";
-const PAYHERE_MERCHANT_SECRET = process.env.PAYHERE_MERCHANT_SECRET || "MTU0NTEwMjc4NjI4NDk2MzMyOTQxNDIyOTQwMTUzODk0MzIyMjAw";
+const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID || "";
+const PAYHERE_MERCHANT_SECRET = process.env.PAYHERE_MERCHANT_SECRET || "";
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3000";
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
