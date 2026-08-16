@@ -160,21 +160,34 @@ const authMiddleware = (req, res, next) => {
 
 
 
-// ── Email Transporter (Brevo SMTP) ───────────────────────────────────────────
+// ── Email Transporter (Brevo SMTP or Gmail) ───────────────────────────────────
 const BREVO_SMTP_LOGIN = process.env.BREVO_SMTP_LOGIN || 'b37923001@smtp-brevo.com';
 const BREVO_SMTP_KEY   = process.env.BREVO_SMTP_KEY   || 'xsmtpsib-c502ec3a700482a107197047774e55391f98e3c8e581fbd80390c87889eddd23-K8PJM4DmZhwDS9LT';
 const STORE_EMAIL      = process.env.STORE_EMAIL      || 'nimradhanethmini2002@gmail.com';
 const OWNER_EMAIL      = process.env.OWNER_EMAIL      || 'fonseka.chamath@gmail.com';
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: BREVO_SMTP_LOGIN,
-    pass: BREVO_SMTP_KEY,
-  },
-});
+const createTransporter = () => {
+  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASS) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASS,
+      },
+    });
+  }
+  return nodemailer.createTransport({
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: BREVO_SMTP_LOGIN,
+      pass: BREVO_SMTP_KEY,
+    },
+  });
+};
+
+const transporter = createTransporter();
 
 
 
