@@ -100,6 +100,8 @@ bencham_Website1/
 
 ---
 
-## 📄 License
+## 👤 Author
 
-This project is for educational and portfolio purposes.
+**Nimradha Nethmini**
+- **GitHub:** [@Nimradha](https://github.com/Nimradha)
+
